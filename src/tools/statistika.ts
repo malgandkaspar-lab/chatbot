@@ -278,6 +278,8 @@ export async function metsasus(): Promise<Metsasus> {
 
 export type RaieLiik = {
   nimi: string;
+  /** Kas tegemist on ülemliigi alaliigiga (MM03-s tähistatud ".." prefiksiga). */
+  onAlaliik: boolean;
   raiemaht: number;
   raiepindala: number;
   osakaalPct: number;
@@ -314,9 +316,14 @@ export async function raieLiigiti(): Promise<RaieLiigiti> {
       Näitaja: MM03_N.RAIEMAHT,
     });
     if (maht === null) continue;
+    const silt = valueTexts[i] ?? kood;
+    // MM03 tähistab alaliike ".." prefiksiga, nt "..lageraie" uuendusraie all.
+    const onAlaliik = silt.startsWith("..");
+    const puhas = silt.replace(/^\.\.+/, "");
     liigid.push({
-      // "..lageraie" -> "lageraie"
-      nimi: (valueTexts[i] ?? kood).replace(/^\.\.+/, ""),
+      // Ühtlustame algustähe: MM03-s on ülemliigid suure, alaliigid väikesega
+      nimi: puhas.charAt(0).toLocaleLowerCase("et") + puhas.slice(1),
+      onAlaliik,
       raiemaht: maht,
       raiepindala:
         ds.value({

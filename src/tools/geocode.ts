@@ -132,18 +132,39 @@ export async function leiaAsukoht(paring: string): Promise<Asukoht | null> {
 }
 
 /**
- * Asukoha päringu ala. Katastriüksusel kasutame tema enda piire (väikese
- * puhvriga), muul juhul ringi viitepunkti ümber.
+ * Asukoha päringu ala L-EST97-s.
+ *
+ * `radiusM` antud   -> ala on VÄHEMALT selle raadiusega kast viitepunkti ümber,
+ *                      ühendatud objekti enda piiridega (nii ei jää suur
+ *                      kinnistu väiksema raadiuse sisse ära lõigatud).
+ * `radiusM` puudub  -> objekti enda piirid väikese puhvriga; kui piire ei ole,
+ *                      siis 500 m kast viitepunkti ümber.
+ *
+ * NB! Varem ignoreeris see funktsioon raadiust, kui objektil oli oma bbox.
+ * See andis vaikselt vale (liiga väikese) ala - nt "MKE 10 km raadiuses"
+ * päris tegelikult ainult kinnistu piiridest ja tagastas 0 vastet.
  */
-export function paringuAla(asukoht: Asukoht, vaikeRadiusM = 500): Bbox {
-  if (asukoht.bbox) {
-    const puhver = 50;
-    return {
-      minX: asukoht.bbox.minX - puhver,
-      minY: asukoht.bbox.minY - puhver,
-      maxX: asukoht.bbox.maxX + puhver,
-      maxY: asukoht.bbox.maxY + puhver,
-    };
+export function paringuAla(asukoht: Asukoht, radiusM?: number): Bbox {
+  const puhver = 50;
+  const oma: Bbox | null = asukoht.bbox
+    ? {
+        minX: asukoht.bbox.minX - puhver,
+        minY: asukoht.bbox.minY - puhver,
+        maxX: asukoht.bbox.maxX + puhver,
+        maxY: asukoht.bbox.maxY + puhver,
+      }
+    : null;
+
+  if (radiusM === undefined) {
+    return oma ?? bboxAround(asukoht.x, asukoht.y, 500);
   }
-  return bboxAround(asukoht.x, asukoht.y, vaikeRadiusM);
+
+  const ring = bboxAround(asukoht.x, asukoht.y, radiusM);
+  if (!oma) return ring;
+  return {
+    minX: Math.min(ring.minX, oma.minX),
+    minY: Math.min(ring.minY, oma.minY),
+    maxX: Math.max(ring.maxX, oma.maxX),
+    maxY: Math.max(ring.maxY, oma.maxY),
+  };
 }

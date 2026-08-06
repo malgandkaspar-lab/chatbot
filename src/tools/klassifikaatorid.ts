@@ -116,8 +116,14 @@ export function puuliik(kood: string | null | undefined): string {
   return otsi(cachePuuliik, kood, "teadmata puuliik");
 }
 
+/**
+ * Omandivorm vaikese algustahega, et see sobiks lause sisse.
+ * kl_omandivorm annab "Eraomand, fuusiline isik" - suur algustaht lause
+ * keskel oleks vale.
+ */
 export function omandivorm(kood: string | null | undefined): string {
-  return otsi(cacheOmandivorm, kood, "teadmata omandivorm");
+  const v = otsi(cacheOmandivorm, kood, "teadmata omandivorm");
+  return v.charAt(0).toLocaleLowerCase("et") + v.slice(1);
 }
 
 export function kasvukoht(kood: string | null | undefined): string {

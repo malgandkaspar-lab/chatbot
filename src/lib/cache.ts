@@ -33,7 +33,9 @@ export async function cached<T>(
   ttlSeconds: number,
   fn: () => Promise<T>,
 ): Promise<T> {
-  if (!envBool("CACHE_ENABLED", true)) return fn();
+  // ttlSeconds <= 0 tahendab "ara kasuta cache'i" - vajalik testimiseks,
+  // et moota tegelikku paringuaega.
+  if (ttlSeconds <= 0 || !envBool("CACHE_ENABLED", true)) return fn();
 
   const file = pathFor(key);
   try {

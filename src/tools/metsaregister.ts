@@ -163,20 +163,40 @@ function kokkuvote(read: Teatis[], leitud: number, limiit: number): TeatisteKokk
   };
 }
 
+/**
+ * Koguarv on MITTEKRIITILINE - see ütleb ainult, kas tulemus on kärbitud.
+ * Riiklik GeoServer vastab hits-päringutele kõikuva kiirusega (mõõdetud
+ * kuni 60 s). Kui see ebaõnnestub või venib, kasutame tegelikult saadud
+ * ridade arvu, mitte ei lase kogu vastust blokeerida.
+ */
+async function loeKoguarv(
+  opts: { cql?: string; bbox?: Bbox },
+  varuvariant: number,
+): Promise<number> {
+  try {
+    return await wfsCount(WS, "teatis", { ...opts, ttlSeconds: TTL_KOGUARV });
+  } catch {
+    return varuvariant;
+  }
+}
+
+const TTL_KOGUARV = 3600;
+
 /** Metsateatised katastritunnuse järgi. */
 export async function teatisedKatastril(
   katastritunnus: string,
   limiit = 100,
 ): Promise<TeatisteKokkuvote> {
   const cql = `katastri_nr=${cqlString(katastritunnus)}`;
-  const [leitud, read] = await Promise.all([
-    wfsCount(WS, "teatis", { cql }),
-    wfsFeatures<TeatisRaw>(WS, "teatis", {
-      cql,
-      count: limiit,
-      propertyName: TEATIS_VALJAD,
-    }),
-  ]);
+  // Read kõigepealt - see on vastuse jaoks hädavajalik osa.
+  const read = await wfsFeatures<TeatisRaw>(WS, "teatis", {
+    cql,
+    count: limiit,
+    propertyName: TEATIS_VALJAD,
+  });
+  // Koguarvu küsime ainult siis, kui tulemus VÕIB olla kärbitud.
+  const leitud =
+    read.length < limiit ? read.length : await loeKoguarv({ cql }, read.length);
   return kokkuvote(read.map(teisendaTeatis), leitud, limiit);
 }
 
@@ -185,14 +205,13 @@ export async function teatisedAlal(
   bbox: Bbox,
   limiit = 200,
 ): Promise<TeatisteKokkuvote> {
-  const [leitud, read] = await Promise.all([
-    wfsCount(WS, "teatis", { bbox }),
-    wfsFeatures<TeatisRaw>(WS, "teatis", {
-      bbox,
-      count: limiit,
-      propertyName: TEATIS_VALJAD,
-    }),
-  ]);
+  const read = await wfsFeatures<TeatisRaw>(WS, "teatis", {
+    bbox,
+    count: limiit,
+    propertyName: TEATIS_VALJAD,
+  });
+  const leitud =
+    read.length < limiit ? read.length : await loeKoguarv({ bbox }, read.length);
   return kokkuvote(read.map(teisendaTeatis), leitud, limiit);
 }
 
@@ -237,7 +256,12 @@ type ElementRaw = {
 export type PuuliigiRida = {
   puuliik: string;
   rinne: string;
-  /** Osakaal kümnendikes (metsaregistri "osakaal" on 1-10 skaalal). */
+  rinneKood: string | null;
+  /**
+   * Osakaal PROTSENTIDES OMA RINDE SEES (mitte kümnendikes ja mitte
+   * eraldise kohta tervikuna). Ühe rinde osakaalud liidetakse 100-ni;
+   * eri rinnete osakaale ei tohi omavahel võrrelda ega kokku liita.
+   */
   osakaal: number | null;
   vanus: number | null;
   korgus: number | null;
@@ -259,7 +283,26 @@ export type Eraldis = {
   omandivorm: string;
   onRiigimets: boolean;
   keskmineVanus: number | null;
+  /**
+   * Koosseisuga kaalutud esimese rinde keskmine raievanus, mille metsaregister
+   * on eraldise kohta arvutanud (metsa majandamise eeskiri § 3 lg 1 ja 1^1).
+   *
+   * NB! See EI OLE lame tabeliväärtus puuliigi ja boniteedi järgi, vaid
+   * puistu koosseisuga kaalutud arv. Seetõttu esineb registris nt kuusel
+   * vahemikku 60-92 ja männil 71-120 aastat, kuigi tabelis on ümmargused
+   * arvud. Kasuta ALATI seda välja, mitte käsitsi kirjutatud tabelit.
+   */
   keskmineRaievanus: number | null;
+  /**
+   * Kas puistu vanus on jõudnud raievanuseni. null = ei saa öelda, sest
+   * vanus või raievanus on registris määramata.
+   *
+   * HOIATUS: see on AINULT vanusetingimus (metsaseadus § 29 lg 4 p 1).
+   * Lageraie võib olla lubatud ka noorema puistu puhul küpsusdiameetri
+   * või väikese täiuse alusel (lg 4 p 2 ja 3), samuti võivad seda keelata
+   * looduskaitselised piirangud. Ei ole raieluba ega juriidiline hinnang.
+   */
+  vanuseTingimusTaidetud: boolean | null;
   korgus: number | null;
   /** Tagavara esimeses rindes, m³/ha. */
   tagavaraHa: number | null;
@@ -327,10 +370,22 @@ export async function eraldisedKatastril(
     grupeeritud.set(e.eraldis_id, arr);
   }
 
+  // Rinnete jarjestus: esimene rinne, teine rinne, jarelkasv, uksikpuud, poosad.
+  // NB! Sorteerimine AINULT osakaalu jargi oleks vale - see tostaks teise rinde
+  // 100%-lise puuliigi esimese rinde enamuspuuliigi ette.
+  const rinneJarjestus: Record<string, number> = {
+    "1": 0, "2": 1, J: 2, Y: 3, A: 4, "-": 5,
+  };
+
   return read.map((r) => {
-    const el = (grupeeritud.get(r.id) ?? []).sort(
-      (a, b) => (b.osakaal ?? 0) - (a.osakaal ?? 0),
-    );
+    const el = (grupeeritud.get(r.id) ?? []).sort((a, b) => {
+      const ra = rinneJarjestus[a.rinne_kood ?? "-"] ?? 9;
+      const rb = rinneJarjestus[b.rinne_kood ?? "-"] ?? 9;
+      if (ra !== rb) return ra - rb;
+      // Enamuspuuliik oma rinde sees esimeseks
+      if (a.enamus !== b.enamus) return a.enamus ? -1 : 1;
+      return (b.osakaal ?? 0) - (a.osakaal ?? 0);
+    });
     const tagavaraHa = r.tagavara_1_ha;
     return {
       id: r.id,
@@ -346,6 +401,10 @@ export async function eraldisedKatastril(
       onRiigimets: onRiigimets(r.omandivorm_kood),
       keskmineVanus: r.keskm_vanus,
       keskmineRaievanus: r.keskm_raievanus,
+      vanuseTingimusTaidetud:
+        r.keskm_vanus !== null && r.keskm_raievanus !== null
+          ? r.keskm_vanus >= r.keskm_raievanus
+          : null,
       korgus: r.korgus,
       tagavaraHa,
       tagavaraKokku:
@@ -358,6 +417,7 @@ export async function eraldisedKatastril(
       puuliigid: el.map((e) => ({
         puuliik: puuliik(e.puuliik_kood),
         rinne: rinne(e.rinne_kood),
+        rinneKood: e.rinne_kood,
         osakaal: e.osakaal,
         vanus: e.vanus,
         korgus: e.korgus,

@@ -35,6 +35,10 @@ import {
   eraldisteKokkuvote,
   mkeAlal,
 } from "../src/tools/metsaregister.js";
+import { kaitseStaatus } from "../src/tools/eelis.js";
+import { otsiTeadmus, koikLoigud } from "../src/tools/teadmus.js";
+import { wfsFeatures, wfsCount, cqlIntersectsPoint } from "../src/tools/wfs.js";
+import { bboxAround } from "../src/lib/geo.js";
 
 /** Null on "andmed puuduvad", mitte null hektarit. */
 const hOrNull = (v: number | null) => (v === null ? "andmed puuduvad" : ha(v));
@@ -242,7 +246,7 @@ test("eraldised_katastril", async () => {
     );
     for (const pl of x.puuliigid) {
       console.log(
-        `          ${pl.puuliik.padEnd(12)} osakaal ${pl.osakaal ?? "?"}/10 vanus ${pl.vanus ?? "?"} a, d=${pl.diameeter ?? "?"} cm${pl.onEnamuspuuliik ? "  <- enamus" : ""}`,
+        `          [${pl.rinne.padEnd(14)}] ${pl.puuliik.padEnd(12)} ${pct(pl.osakaal ?? 0, 0).padEnd(5)} vanus ${pl.vanus ?? "?"} a, d=${pl.diameeter ?? "?"} cm${pl.onEnamuspuuliik ? "  <- enamuspuuliik" : ""}`,
       );
     }
   }
@@ -251,11 +255,123 @@ test("eraldised_katastril", async () => {
 test("mke_alal", async () => {
   const a = await leiaAsukoht(TEST_KATASTER);
   if (!a) throw new Error("asukohta ei leitud");
-  const read = await mkeAlal(paringuAla(a, 10_000), 50);
+  const ala = paringuAla(a, 10_000);
+  console.log(
+    `  ala laius ${num((ala.maxX - ala.minX) / 1000, 1)} km x ${num((ala.maxY - ala.minY) / 1000, 1)} km`,
+  );
+  const read = await mkeAlal(ala, 50);
   console.log(`  MKE akte 10 km raadiuses: ${read.length}`);
   for (const m of read.slice(0, 5)) {
     console.log(
       `      akt ${m.aktiNr} ${m.katastritunnus} er.${m.eraldiseNr} ${m.raieliik} ${ha(m.pindala ?? 0)} ${m3(m.maht ?? 0)} kehtiv kuni ${date(m.kehtivKuni)}`,
+    );
+  }
+});
+
+// --- Etapp 5: EELIS + teljejarjestuse regressioonitest ---------------------
+
+/**
+ * REGRESSIOONITEST. Kaks eri teljejarjestust on juba kaks korda vaikselt
+ * vale tulemuse andnud (BBOX parameeter vs CQL geomeetria). Vale jarjestus
+ * ei anna viga, vaid tuhja vastuse - seega peab test seda aktiivselt puuduma.
+ */
+test("cql_teljejarjestus", async () => {
+  // Haanja loodupargi sisemine punkt (kontrollitud geomeetria tsentroidist)
+  const HAANJA_X = 682843;
+  const HAANJA_Y = 6402860;
+
+  const oige = await wfsFeatures<{ nimi: string }>("eelis", "kr_kaitseala", {
+    cql: cqlIntersectsPoint(HAANJA_X, HAANJA_Y),
+    count: 5,
+  });
+  console.log(`  cqlIntersectsPoint -> ${oige.map((r) => r.nimi).join(", ") || "(tühi)"}`);
+  if (!oige.some((r) => r.nimi?.startsWith("Haanja"))) {
+    throw new Error(
+      "TELJEJÄRJESTUS KATKI: Haanja loodupargi sisemine punkt ei lõiku " +
+        "kr_kaitseala kihiga. Vaata cqlPoint() kommentaari failis src/tools/wfs.ts.",
+    );
+  }
+
+  // Vastupidine jarjestus PEAB andma tuhja - kui ei anna, on server muutunud
+  const vale = await wfsFeatures<{ nimi: string }>("eelis", "kr_kaitseala", {
+    cql: `INTERSECTS(shape, POINT(${HAANJA_X} ${HAANJA_Y}))`,
+    count: 5,
+  });
+  console.log(`  vale järjestus (x y) -> ${vale.length} vastet (oodatud 0)`);
+  if (vale.length > 0) {
+    throw new Error(
+      "GeoServeri teljekäitumine on muutunud - cqlPoint() vajab ülevaatamist",
+    );
+  }
+
+  // BBOX parameeter kasutab VASTUPIDIST jarjestust ja peab tootama
+  const bboxTest = await wfsCount("eelis", "kr_kaitseala", {
+    bbox: bboxAround(HAANJA_X, HAANJA_Y, 1000),
+  });
+  console.log(`  BBOX parameeter (x,y) -> ${bboxTest} vastet (oodatud > 0)`);
+  if (bboxTest === 0) {
+    throw new Error("BBOX teljejärjestus katki - vaata bboxParam() src/lib/geo.ts");
+  }
+});
+
+test("kaitsealad", async () => {
+  const kohad: [string, number, number][] = [
+    ["Haanja looduspark (sees)", 682843, 6402860],
+    ["Kädso kinnistu", 694781, 6388193],
+  ];
+  for (const [nimi, x, y] of kohad) {
+    const k = await kaitseStaatus(x, y, 3000);
+    console.log(`  ${nimi}: ${k.onKaitseAll ? "KAITSE ALL" : "ei ole kaitse all"}`);
+    for (const o of k.katavad) {
+      console.log(
+        `      katab: ${o.nimi} [${o.kategooria}] ${o.krKood ?? ""}${o.naturaKood ? " Natura " + o.naturaKood : ""}`,
+      );
+    }
+    for (const o of k.lahedal.slice(0, 4)) {
+      console.log(`      lähedal (3 km): ${o.nimi} [${o.kategooria}]`);
+    }
+  }
+  console.log(
+    "  NB: bbox-kattuvus oleks Kädso puhul andnud 3 valepositiivset kaitseala",
+  );
+});
+
+test("teadmus", async () => {
+  console.log(`  lõike failis: ${koikLoigud().length}`);
+  const kysimused = [
+    "mis vanuses tohib männikut lageraiuda",
+    "kui suur tohib lagerailank olla",
+    "kas kevadel tohib metsa raiuda",
+    "kas ma pean raiesmiku uuendama",
+    "mis on metsateatis ja kui kaua see kehtib",
+    "mis vahe on turberaiel ja lageraiel",
+    "kui kaua elab kilpkonn",
+  ];
+  for (const q of kysimused) {
+    const v = otsiTeadmus(q, 2);
+    console.log(
+      `  "${q}"\n      -> ${v.length ? v.map((l) => l.pealkiri).join(" | ") : "(ei leidnud - vastab et ei tea)"}`,
+    );
+  }
+});
+
+test("raievanus_registrist", async () => {
+  const e = await eraldisedKatastril(TEST_KATASTER);
+  const kypsed = e.filter((x) => x.vanuseTingimusTaidetud === true);
+  const noored = e.filter((x) => x.vanuseTingimusTaidetud === false);
+  const teadmata = e.filter((x) => x.vanuseTingimusTaidetud === null);
+  console.log(
+    `  ${e.length} eraldist: ${kypsed.length} vanuse järgi raieküps, ${noored.length} veel noor, ${teadmata.length} määramata`,
+  );
+  for (const x of e.slice(0, 6)) {
+    const seis =
+      x.vanuseTingimusTaidetud === null
+        ? "määramata"
+        : x.vanuseTingimusTaidetud
+          ? "vanusetingimus TÄIDETUD"
+          : "veel noor";
+    console.log(
+      `      er.${x.eraldiseNr}: ${x.peapuuliik}, vanus ${x.keskmineVanus ?? "?"} a, raievanus ${x.keskmineRaievanus ?? "?"} a -> ${seis}`,
     );
   }
 });

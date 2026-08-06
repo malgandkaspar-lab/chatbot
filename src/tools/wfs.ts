@@ -1,5 +1,6 @@
 import { getJson, request, qs } from "../lib/http.js";
 import { cached, TTL } from "../lib/cache.js";
+import { geoserverLimiter } from "../lib/limiter.js";
 import type { Bbox } from "../lib/geo.js";
 import { bboxParam, SRS_LEST } from "../lib/geo.js";
 
@@ -94,8 +95,11 @@ export async function wfsCollection<P>(
     sortBy,
   })}`;
 
+  // NB! Piiraja on kohustuslik - vaata src/lib/limiter.ts kommentaari.
   return cached(`wfs:${url}`, ttlSeconds, () =>
-    getJson<FeatureCollection<P>>(url, { timeoutMs: 60_000 }),
+    geoserverLimiter.run(() =>
+      getJson<FeatureCollection<P>>(url, { timeoutMs: 60_000 }),
+    ),
   );
 }
 
@@ -137,7 +141,7 @@ export async function wfsCount(
   })}`;
 
   const xml = await cached(`wfshits:${url}`, ttlSeconds, () =>
-    request(url, { timeoutMs: 45_000 }),
+    geoserverLimiter.run(() => request(url, { timeoutMs: 45_000 })),
   );
 
   const m =
@@ -155,6 +159,48 @@ export async function wfsCount(
 export function cqlString(value: string): string {
   return `'${value.replace(/'/g, "''")}'`;
 }
+
+// ---------------------------------------------------------------------------
+// Ruumilised CQL predikaadid
+// ---------------------------------------------------------------------------
+
+/**
+ * HOIATUS - TELJEJÄRJESTUS ON SIIN VASTUPIDINE kui BBOX parameetris.
+ *
+ *   BBOX parameeter + "EPSG:3301"  ->  minX,minY,maxX,maxY   (ida, põhi)
+ *   CQL geomeetria-literaal        ->  POINT(y x)            (põhi, ida)
+ *
+ * GeoServer tõlgendab CQL-i geomeetriaid andmeallika CRS-i autoriteedi
+ * teljejärjestuses, mis EPSG:3301 puhul on (northing, easting).
+ *
+ * Kontrollitud Haanja loodupargi vastu:
+ *   INTERSECTS(shape, POINT(682843 6402860))  -> tühi     (vale)
+ *   INTERSECTS(shape, POINT(6402860 682843))  -> Haanja   (õige)
+ *
+ * Vale järjestus ei anna viga, vaid VAIKSELT tühja tulemuse. Seetõttu on
+ * see kapseldatud siia ja kaetud smoke-testiga (`cql_teljejarjestus`).
+ * Ära kirjuta CQL-i geomeetriaid mujal käsitsi.
+ */
+export function cqlPoint(x: number, y: number): string {
+  return `POINT(${y} ${x})`;
+}
+
+/** Kas objekt katab antud punkti (L-EST97). */
+export function cqlIntersectsPoint(x: number, y: number): string {
+  return `INTERSECTS(shape, ${cqlPoint(x, y)})`;
+}
+
+/** Kas objekt on punktist kuni `meetrit` kaugusel (L-EST97). */
+export function cqlWithinDistance(
+  x: number,
+  y: number,
+  meetrit: number,
+): string {
+  return `DWITHIN(shape, ${cqlPoint(x, y)}, ${meetrit}, meters)`;
+}
+
+/** Geomeetriaveeru nimi Kliimaministeeriumi GeoServeri kihtidel. */
+export const GEOM_VEERG = "shape";
 
 /** Kontrollib katastritunnuse kuju 12345:001:0001. */
 export const KATASTRITUNNUS_RE = /\b\d{5}:\d{3}:\d{4}\b/;
