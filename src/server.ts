@@ -8,6 +8,11 @@ import { llmRuuter } from "./llm/router.js";
 import { tervisekontroll, chatStream } from "./llm/ollama.js";
 import { VASTAJA_PROMPT } from "./llm/prompts.js";
 import { KIRJELDUSED } from "./router/intents.js";
+import {
+  leiaSeanss,
+  kustutaSeanss,
+  seansideArv,
+} from "./router/kontekst.js";
 
 const app = express();
 app.use(express.json({ limit: "32kb" }));
@@ -22,6 +27,7 @@ app.get("/api/tervis", async (_req, res) => {
     llm,
     /** Bot töötab ka ilma LLM-ita - see on lisand, mitte sõltuvus. */
     sabloonidToovad: true,
+    seansse: seansideArv(),
   });
 });
 
@@ -39,8 +45,19 @@ app.get("/api/intents", (_req, res) => {
  *   lopp     - metaandmed ja lõpetamine
  *   viga     - veateade
  */
+/** Vestluse mälu lähtestamine. */
+app.post("/api/uus", (req, res) => {
+  const id = String((req.body as { seanss?: unknown })?.seanss ?? "").trim();
+  if (id) kustutaSeanss(id);
+  res.json({ ok: true });
+});
+
 app.post("/api/chat", async (req, res) => {
-  const kysimus = String((req.body as { kysimus?: unknown })?.kysimus ?? "").trim();
+  const keha = req.body as { kysimus?: unknown; seanss?: unknown };
+  const kysimus = String(keha?.kysimus ?? "").trim();
+  const seanssId = String(keha?.seanss ?? "").trim();
+  // Mälu on seansipõhine. Ilma ID-ta töötab bot mäluta.
+  const kontekst = seanssId ? leiaSeanss(seanssId) : null;
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream; charset=utf-8",
@@ -75,7 +92,12 @@ app.post("/api/chat", async (req, res) => {
         }
       : undefined;
 
-    const v = await vasta(kysimus, ruuter);
+    const v = await vasta(kysimus, { llmRuuter: ruuter, kontekst });
+
+    // Kui vastus tugines varasemale vestlusele, ütleme seda kohe välja
+    if (v.kontekstiSelgitus) {
+      saada("kontekst", { sonum: v.kontekstiSelgitus });
+    }
 
     // Tundmatu intent + LLM olemas -> laseme mudelil ausalt vastata
     if (v.intent === "tundmatu" && llmLubatud()) {
@@ -124,6 +146,13 @@ app.post("/api/chat", async (req, res) => {
       ruuteriPohjus: v.ruuteriPohjus,
       allikad: v.allikad,
       hoiatused: v.hoiatused,
+      malu: kontekst
+        ? {
+            asukoht: kontekst.viimaneAsukohaNimi,
+            maakond: kontekst.viimaneMaakonnaNimi,
+            kysimusi: kontekst.kysimusi,
+          }
+        : null,
       kestusMs: Date.now() - algus,
     });
     res.end();

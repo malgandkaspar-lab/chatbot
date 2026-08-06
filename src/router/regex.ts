@@ -1,5 +1,7 @@
-import type { Paring } from "./intents.js";
+import type { Paring, IntentNimi } from "./intents.js";
+import type { Kontekst } from "./kontekst.js";
 import { leiaMaakonnaKood, MAAKONNAD } from "../tools/statistika.js";
+import { maakondInessive } from "../lib/format.js";
 import { KATASTRITUNNUS_RE } from "../tools/wfs.js";
 
 /**
@@ -16,6 +18,12 @@ export type RuuteriTulemus = {
   allikas: "regex" | "llm" | "puudub";
   /** Millise mustri järgi otsus tehti (silumiseks). */
   pohjus: string;
+  /**
+   * Kui vastus tugineb varasemale kontekstile, on siin selgitus, mida
+   * kasutajale näidata ("Kasutan eelmist asukohta: ..."). Nii ei jää
+   * kasutajale mulje, et bot teadis midagi, mida ta ei öelnud.
+   */
+  kontekstiSelgitus?: string;
 };
 
 function norm(s: string): string {
@@ -68,13 +76,48 @@ function onAsukohaKysimus(t: string): boolean {
   return (
     KATASTRITUNNUS_RE.test(t) ||
     /\b(kinnistu|katastri|krunt|maatükk|minu mets|mu mets|meie mets|naabri|siin|selle koha|aadress)/u.test(t) ||
-    /\b(külas?|vallas?|alevikus?)\b/u.test(t)
+    /\b(külas?|vallas?|alevikus?)\b/u.test(t) ||
+    onAsesonaViide(t)
   );
+}
+
+/**
+ * Asesõnaline viide varem mainitud kohale: "kas SEE on kaitse all",
+ * "mis SEAL kasvab", "SELLE kinnistu". Ilma kontekstita on need mõttetud,
+ * kontekstiga aga kõige loomulikum jätkuküsimuse vorm.
+ */
+function onAsesonaViide(t: string): boolean {
+  return /\b(see|seda|selle|sellel|seal|sinna|sealt|samal|sama|antud)\b/u.test(t);
+}
+
+/**
+ * Jätkuküsimus, mis kordab eelmist küsimust uue maakonnaga:
+ * "aga Võrumaal?", "ja Tartumaal?", "Saaremaal?"
+ *
+ * Tunnus: lühike lause, mille sisuks on sisuliselt ainult maakonnanimi,
+ * millele võib eelneda sidesõna.
+ */
+function onMaakonnaJatkuk(kysimus: string, kood: string | null): boolean {
+  if (!kood) return false;
+  const puhas = kysimus
+    .toLocaleLowerCase("et")
+    .replace(/[?!.,]/g, " ")
+    .replace(/\b(aga|ja|ning|kuidas|mis|siis|no|nt|näiteks|kas)\b/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const sonu = puhas.split(" ").filter(Boolean).length;
+  // "võrumaal" = 1 sõna, "ida-viru maakonnas" = 2 sõna
+  return sonu <= 2;
 }
 
 // ---------------------------------------------------------------------------
 // Mustrid
 // ---------------------------------------------------------------------------
+
+type Ehitus = {
+  paring: Paring;
+  kontekstiSelgitus?: string;
+};
 
 type Reegel = {
   nimi: string;
@@ -82,39 +125,89 @@ type Reegel = {
   kui: RegExp[];
   /** Ükski neist ei tohi sobida. */
   valjaArvatud?: RegExp[];
-  ehita: (kysimus: string, t: string) => Paring | null;
+  ehita: (kysimus: string, t: string, k: Kontekst | null) => Ehitus | Paring | null;
 };
 
+/**
+ * Asukoha lahendamine koos konteksti varuvariandiga.
+ *
+ * Kui küsimuses on asukoht kirjas, kasutame seda. Kui küsimus viitab
+ * asesõnaga ("kas see on kaitse all") ja meil on eelmine asukoht, siis
+ * kasutame seda ja ÜTLEME SEDA KASUTAJALE - vastasel juhul jääks mulje,
+ * et bot teadis midagi, mida kasutaja ei öelnud.
+ */
+function asukohtVoiKontekst(
+  kysimus: string,
+  intent: "teatised_asukohas" | "eraldise_info" | "kaitsealad_asukohas",
+  k: Kontekst | null,
+): Ehitus | null {
+  const otsene = eraldaAsukoht(kysimus);
+  if (otsene) return { paring: { intent, asukoht: otsene } };
+
+  if (k?.viimaneAsukoht) {
+    return {
+      paring: { intent, asukoht: k.viimaneAsukoht },
+      kontekstiSelgitus: `Kasutan eelmist asukohta: ${k.viimaneAsukohaNimi ?? k.viimaneAsukoht}`,
+    };
+  }
+  return null;
+}
+
 const REEGLID: Reegel[] = [
+  // --- JÄTKUKÜSIMUS: sama küsimus, uus maakond ("aga Võrumaal?")
+  //     Peab olema esimene, sest muidu haaraks mõni sisureegel selle endale.
+  {
+    nimi: "jatku_maakond",
+    kui: [/./u],
+    ehita: (kysimus, _t, k) => {
+      if (!k?.viimaneIntent) return null;
+      const kood = leiaMaakond(kysimus);
+      if (!onMaakonnaJatkuk(kysimus, kood) || !kood) return null;
+
+      const nimi = MAAKONNAD[kood] ?? kood;
+      const selgitus = `Jätkan eelmist küsimust, nüüd ${maakondInessive(nimi)}`;
+
+      switch (k.viimaneIntent) {
+        case "raie_maakonnas":
+          return { paring: { intent: "raie_maakonnas", maakond: kood }, kontekstiSelgitus: selgitus };
+        case "uuendamine":
+          return { paring: { intent: "uuendamine", maakond: kood }, kontekstiSelgitus: selgitus };
+        case "kahjustused":
+          return { paring: { intent: "kahjustused", maakond: kood }, kontekstiSelgitus: selgitus };
+        default:
+          // Muude intentide puhul on maakonnavaates mõistlik vaste raiemaht
+          return {
+            paring: { intent: "raie_maakonnas", maakond: kood },
+            kontekstiSelgitus: `Näitan raiemahtu ${maakondInessive(nimi)}`,
+          };
+      }
+    },
+  },
+
   // --- Kaitsealad. Enne teatisi, sest "kas mu mets on kaitse all" on spetsiifilisem.
   {
     nimi: "kaitseala",
     kui: [/\b(kaitse all|kaitseala|kaitsealu|natura|loodusala|linnuala|hoiuala|sihtkaitse|piiranguvöönd|reservaat|rahvuspark|looduskaitse)/u],
-    ehita: (k) => {
-      const asukoht = eraldaAsukoht(k);
-      return asukoht ? { intent: "kaitsealad_asukohas", asukoht } : null;
-    },
+    ehita: (kysimus, _t, k) => asukohtVoiKontekst(kysimus, "kaitsealad_asukohas", k),
   },
 
   // --- Raieload asukohas
   {
     nimi: "teatised_asukohas",
     kui: [/\b(raieluba|raielub|metsateatis|teatis|raiet? (?:plaan|kavanda)|lubatud raiu|raieõigus)/u],
-    ehita: (k, t) => {
-      if (!onAsukohaKysimus(t)) return null;
-      const asukoht = eraldaAsukoht(k);
-      return asukoht ? { intent: "teatised_asukohas", asukoht } : null;
+    ehita: (kysimus, t, k) => {
+      if (!onAsukohaKysimus(t) && !k?.viimaneAsukoht) return null;
+      return asukohtVoiKontekst(kysimus, "teatised_asukohas", k);
     },
   },
 
   // --- Mis metsa kasvab
   {
     nimi: "eraldise_info",
-    kui: [/\b(mis (?:metsa? )?kasvab|milline mets|kui vana|vanus|puuliigi?d?|koosseis|tagavara|palju puitu|raieküps|küps)/u],
-    ehita: (k, t) => {
-      if (!onAsukohaKysimus(t)) return null;
-      const asukoht = eraldaAsukoht(k);
-      return asukoht ? { intent: "eraldise_info", asukoht } : null;
+    kui: [/\b(mis\s+(?:\S+\s+){0,2}kasvab|milline mets|kui vana|vanus|puuliigi?d?|koosseis|tagavara|palju puitu|raieküps|küps)/u],
+    ehita: (kysimus, t, k) => {
+      if (!onAsukohaKysimus(t) && !k?.viimaneAsukoht) return null;
+      return asukohtVoiKontekst(kysimus, "eraldise_info", k);
     },
   },
 
@@ -230,8 +323,14 @@ function leiaMaakond(kysimus: string): string | null {
 /**
  * Marsruudib küsimuse. Tagastab `tundmatu`, kui ükski muster ei sobi -
  * sel juhul proovib pipeline LLM-i.
+ *
+ * `kontekst` on valikuline. Ilma selleta käitub ruuter täpselt nagu varem,
+ * seega olemasolevad testid ja CLI töötavad muutmata kujul.
  */
-export function marsruudi(kysimus: string): RuuteriTulemus {
+export function marsruudi(
+  kysimus: string,
+  kontekst: Kontekst | null = null,
+): RuuteriTulemus {
   const t = norm(kysimus);
   if (!t) {
     return { paring: { intent: "tundmatu" }, allikas: "puudub", pohjus: "tühi sisend" };
@@ -240,11 +339,21 @@ export function marsruudi(kysimus: string): RuuteriTulemus {
   for (const reegel of REEGLID) {
     if (!reegel.kui.every((r) => r.test(t))) continue;
     if (reegel.valjaArvatud?.some((r) => r.test(t))) continue;
-    const paring = reegel.ehita(kysimus, t);
-    if (paring) {
-      return { paring, allikas: "regex", pohjus: reegel.nimi };
-    }
+    const tulem = reegel.ehita(kysimus, t, kontekst);
+    if (!tulem) continue;
+
+    const on = "paring" in tulem;
+    return {
+      paring: on ? tulem.paring : (tulem as Paring),
+      allikas: "regex",
+      pohjus: reegel.nimi,
+      ...(on && tulem.kontekstiSelgitus
+        ? { kontekstiSelgitus: tulem.kontekstiSelgitus }
+        : {}),
+    };
   }
 
   return { paring: { intent: "tundmatu" }, allikas: "puudub", pohjus: "vastet ei leitud" };
 }
+
+export type { IntentNimi };

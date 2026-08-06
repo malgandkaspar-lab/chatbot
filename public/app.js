@@ -5,6 +5,16 @@ const saadaNupp = document.getElementById("saada");
 const tervisDiv = document.getElementById("tervis");
 const naitedDiv = document.getElementById("naited");
 
+// Seansi ID hoiame sessionStorage'is, et mälu püsiks lehe uuendamisel,
+// aga eri kaardid oleksid eraldi vestlused.
+const SEANSS =
+  sessionStorage.getItem("metsabot-seanss") ??
+  (() => {
+    const id = crypto.randomUUID();
+    sessionStorage.setItem("metsabot-seanss", id);
+    return id;
+  })();
+
 const NAITED = [
   "Kas metsa raiutakse rohkem kui juurde kasvab?",
   "Kui suur osa Eestist on metsa all?",
@@ -158,7 +168,7 @@ async function kysi(kysimus) {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ kysimus }),
+      body: JSON.stringify({ kysimus, seanss: SEANSS }),
     });
 
     const lugeja = res.body.getReader();
@@ -187,6 +197,12 @@ async function kysi(kysimus) {
 
         if (syndmus === "staatus") {
           staatus.textContent = d.sonum;
+        } else if (syndmus === "kontekst") {
+          // Ütleme selgelt välja, kui vastus tugineb varasemale vestlusele
+          const c = document.createElement("div");
+          c.className = "kontekst";
+          c.textContent = d.sonum;
+          sisu.insertBefore(c, staatus);
         } else if (syndmus === "vastus") {
           staatus.remove();
           const div = document.createElement("div");
@@ -216,8 +232,10 @@ async function kysi(kysimus) {
           }
           const m = document.createElement("div");
           m.className = "meta";
-          m.textContent = `${d.intent} · ruuter: ${d.ruuter} · ${d.kestusMs} ms`;
+          const maluOsa = d.malu?.asukoht ? ` · mälus: ${d.malu.asukoht}` : "";
+          m.textContent = `${d.intent} · ruuter: ${d.ruuter} · ${d.kestusMs} ms${maluOsa}`;
           sisu.append(m);
+          uuendaMaluRiba(d.malu);
         } else if (syndmus === "viga") {
           staatus.remove();
           el.classList.add("viga");
@@ -245,6 +263,31 @@ async function kysi(kysimus) {
     kerimineAlla();
   }
 }
+
+function uuendaMaluRiba(malu) {
+  const riba = document.getElementById("maluriba");
+  if (!riba) return;
+  const osad = [];
+  if (malu?.asukoht) osad.push(`asukoht: ${malu.asukoht}`);
+  if (malu?.maakond) osad.push(`maakond: ${malu.maakond}`);
+  if (osad.length === 0) {
+    riba.hidden = true;
+    return;
+  }
+  riba.hidden = false;
+  riba.querySelector("span").textContent = `Mäletan — ${osad.join(", ")}`;
+}
+
+document.getElementById("uus").addEventListener("click", async () => {
+  await fetch("/api/uus", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ seanss: SEANSS }),
+  }).catch(() => {});
+  vestlus.querySelectorAll(".sonum:not(:first-child)").forEach((el) => el.remove());
+  uuendaMaluRiba(null);
+  sisend.focus();
+});
 
 vorm.addEventListener("submit", (e) => {
   e.preventDefault();

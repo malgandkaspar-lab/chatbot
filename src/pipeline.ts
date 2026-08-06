@@ -1,5 +1,6 @@
 import { marsruudi, type RuuteriTulemus } from "./router/regex.js";
 import type { Paring } from "./router/intents.js";
+import type { Kontekst } from "./router/kontekst.js";
 import {
   raieVsJuurdekasv,
   metsavaruTrend,
@@ -8,6 +9,7 @@ import {
   raieMaakonnas,
   uuendamine,
   kahjustused,
+  MAAKONNAD,
 } from "./tools/statistika.js";
 import {
   teatisedKatastril,
@@ -26,8 +28,17 @@ export type VastusePakett = Vastus & {
   intent: string;
   ruuter: RuuteriTulemus["allikas"];
   ruuteriPohjus: string;
+  /** Selgitus, kui vastus tugines varasemale vestlusele. */
+  kontekstiSelgitus?: string;
   /** Töötlemise kestus millisekundites. */
   kestusMs: number;
+};
+
+export type VastaValikud = {
+  /** LLM-varuvariant, kutsutakse ainult kui regex vastet ei leidnud. */
+  llmRuuter?: (k: string) => Promise<Paring | null>;
+  /** Vestluse mälu. Kui puudub, käitub bot mäluta (iga küsimus iseseisev). */
+  kontekst?: Kontekst | null;
 };
 
 /**
@@ -39,14 +50,19 @@ export type VastusePakett = Vastus & {
  */
 export async function vasta(
   kysimus: string,
-  llmRuuter?: (k: string) => Promise<Paring | null>,
+  valikud: VastaValikud | ((k: string) => Promise<Paring | null>) = {},
 ): Promise<VastusePakett> {
-  const algus = Date.now();
-  let tulemus = marsruudi(kysimus);
+  // Tagasiühilduvus: varem võttis funktsioon teise argumendina otse llmRuuteri
+  const v: VastaValikud =
+    typeof valikud === "function" ? { llmRuuter: valikud } : valikud;
+  const kontekst = v.kontekst ?? null;
 
-  if (tulemus.paring.intent === "tundmatu" && llmRuuter) {
+  const algus = Date.now();
+  let tulemus = marsruudi(kysimus, kontekst);
+
+  if (tulemus.paring.intent === "tundmatu" && v.llmRuuter) {
     try {
-      const llmParing = await llmRuuter(kysimus);
+      const llmParing = await v.llmRuuter(kysimus);
       if (llmParing && llmParing.intent !== "tundmatu") {
         tulemus = { paring: llmParing, allikas: "llm", pohjus: "LLM-ruuter" };
       }
@@ -55,15 +71,46 @@ export async function vasta(
     }
   }
 
-  const vastus = await taidaIntent(tulemus.paring, kysimus);
+  const { vastus, lahendatudAsukoht } = await taidaIntent(tulemus.paring, kysimus);
+
+  if (kontekst) uuendaKontekst(kontekst, tulemus.paring, lahendatudAsukoht);
 
   return {
     ...vastus,
     intent: tulemus.paring.intent,
     ruuter: tulemus.allikas,
     ruuteriPohjus: tulemus.pohjus,
+    ...(tulemus.kontekstiSelgitus
+      ? { kontekstiSelgitus: tulemus.kontekstiSelgitus }
+      : {}),
     kestusMs: Date.now() - algus,
   };
+}
+
+/**
+ * Uuendab mälu. Konteksti kirjutame ainult ÕNNESTUNUD lahenduse põhjal -
+ * kui asukohta ei leitud, ei tohi vigane sisend eelmist head asukohta üle
+ * kirjutada, muidu läheb järgmine jätkuküsimus katki.
+ */
+function uuendaKontekst(
+  k: Kontekst,
+  paring: Paring,
+  lahendatud: { sisend: string; nimi: string } | null,
+): void {
+  k.kysimusi++;
+  k.uuendatud = Date.now();
+
+  if (paring.intent !== "tundmatu") k.viimaneIntent = paring.intent;
+
+  if (lahendatud) {
+    k.viimaneAsukoht = lahendatud.sisend;
+    k.viimaneAsukohaNimi = lahendatud.nimi;
+  }
+
+  if ("maakond" in paring && paring.maakond) {
+    k.viimaneMaakond = paring.maakond;
+    k.viimaneMaakonnaNimi = MAAKONNAD[paring.maakond] ?? paring.maakond;
+  }
 }
 
 /** Inimloetav asukohafraas vastuse alguseks. */
@@ -96,83 +143,114 @@ function onVastus(x: unknown): x is Vastus {
   return typeof x === "object" && x !== null && "tekst" in x;
 }
 
-async function taidaIntent(paring: Paring, kysimus: string): Promise<Vastus> {
+type Tulem = {
+  vastus: Vastus;
+  /** Õnnestunult lahendatud asukoht, mälu uuendamiseks. */
+  lahendatudAsukoht: { sisend: string; nimi: string } | null;
+};
+
+const ilmaAsukohta = (vastus: Vastus): Tulem => ({
+  vastus,
+  lahendatudAsukoht: null,
+});
+
+async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
   switch (paring.intent) {
     case "raie_vs_juurdekasv":
-      return T.raieVsJuurdekasvVastus(await raieVsJuurdekasv());
+      return ilmaAsukohta(T.raieVsJuurdekasvVastus(await raieVsJuurdekasv()));
 
     case "metsavaru_trend":
-      return T.metsavaruTrendVastus(await metsavaruTrend(10));
+      return ilmaAsukohta(T.metsavaruTrendVastus(await metsavaruTrend(10)));
 
     case "metsasus":
-      return T.metsasusVastus(await metsasus());
+      return ilmaAsukohta(T.metsasusVastus(await metsasus()));
 
     case "raie_liigiti":
-      return T.raieLiigitiVastus(await raieLiigiti());
+      return ilmaAsukohta(T.raieLiigitiVastus(await raieLiigiti()));
 
     case "raie_maakonnas":
-      return T.raieMaakonnasVastus(await raieMaakonnas(paring.maakond));
+      return ilmaAsukohta(
+        T.raieMaakonnasVastus(await raieMaakonnas(paring.maakond)),
+      );
 
     case "uuendamine":
-      return T.uuendamineVastus(await uuendamine(paring.maakond ?? "00"));
+      return ilmaAsukohta(
+        T.uuendamineVastus(await uuendamine(paring.maakond ?? "00")),
+      );
 
     case "kahjustused":
-      return T.kahjustusedVastus(await kahjustused(paring.maakond ?? "00"));
+      return ilmaAsukohta(
+        T.kahjustusedVastus(await kahjustused(paring.maakond ?? "00")),
+      );
 
     case "teatised_asukohas": {
       const r = await lahendaAsukoht(paring.asukoht);
-      if (onVastus(r)) return r;
+      if (onVastus(r)) return ilmaAsukohta(r);
       const { asukoht, fraas } = r;
+      const malu = { sisend: paring.asukoht, nimi: fraas };
 
       // Katastritunnuse puhul on täpne CQL-päring parem kui ruumiline kast
       if (asukoht.katastritunnus) {
         const k = await teatisedKatastril(asukoht.katastritunnus);
-        return T.teatisedVastus(k, fraas, true);
+        return {
+          vastus: T.teatisedVastus(k, fraas, true),
+          lahendatudAsukoht: malu,
+        };
       }
       const k = await teatisedAlal(paringuAla(asukoht, 1000));
-      return T.teatisedVastus(
-        k,
-        `${fraas} ümbruses (kuni 1 km)`,
-        false,
-      );
+      return {
+        vastus: T.teatisedVastus(k, `${fraas} ümbruses (kuni 1 km)`, false),
+        lahendatudAsukoht: malu,
+      };
     }
 
     case "eraldise_info": {
       const r = await lahendaAsukoht(paring.asukoht);
-      if (onVastus(r)) return r;
+      if (onVastus(r)) return ilmaAsukohta(r);
       const { asukoht, fraas } = r;
+      const malu = { sisend: paring.asukoht, nimi: fraas };
 
       if (!asukoht.katastritunnus) {
         return {
-          tekst:
-            `Metsaeraldise andmeid saan pärida ainult katastritunnuse järgi, ` +
-            `aga "${paring.asukoht}" andis vasteks ${fraas}, millel ` +
-            `katastritunnust ei ole.\n\n` +
-            `Lisa palun katastritunnus kujul 12345:001:0001.`,
-          allikad: [],
-          hoiatused: [],
+          vastus: {
+            tekst:
+              `Metsaeraldise andmeid saan pärida ainult katastritunnuse järgi, ` +
+              `aga "${paring.asukoht}" andis vasteks ${fraas}, millel ` +
+              `katastritunnust ei ole.\n\n` +
+              `Lisa palun katastritunnus kujul 12345:001:0001.`,
+            allikad: [],
+            hoiatused: [],
+          },
+          // Asukoht ise lahenes, seega jätame selle mällu
+          lahendatudAsukoht: malu,
         };
       }
       const eraldised = await eraldisedKatastril(asukoht.katastritunnus);
-      return T.eraldiseInfoVastus(
-        eraldisteKokkuvote(asukoht.katastritunnus, eraldised),
-        fraas,
-      );
+      return {
+        vastus: T.eraldiseInfoVastus(
+          eraldisteKokkuvote(asukoht.katastritunnus, eraldised),
+          fraas,
+        ),
+        lahendatudAsukoht: malu,
+      };
     }
 
     case "kaitsealad_asukohas": {
       const r = await lahendaAsukoht(paring.asukoht);
-      if (onVastus(r)) return r;
+      if (onVastus(r)) return ilmaAsukohta(r);
       const { asukoht, fraas } = r;
       const k = await kaitseStaatus(asukoht.x, asukoht.y, 3000);
-      return T.kaitsealadVastus(k, fraas);
+      return {
+        vastus: T.kaitsealadVastus(k, fraas),
+        lahendatudAsukoht: { sisend: paring.asukoht, nimi: fraas },
+      };
     }
 
     case "reeglid":
-      return T.reeglidVastus(otsiTeadmus(paring.kysimus, 2));
+      return ilmaAsukohta(T.reeglidVastus(otsiTeadmus(paring.kysimus, 2)));
 
     case "tundmatu":
-      return T.tundmatuVastus(kysimus);
+      return ilmaAsukohta(T.tundmatuVastus(kysimus));
   }
 }
 

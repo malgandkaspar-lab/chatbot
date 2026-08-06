@@ -65,6 +65,32 @@ eestikeelsetest šabloonidest koodis — grammatika on korrektne, vastus tuleb
 | `kaitsealad_asukohas` | Kas see kinnistu on kaitse all? |
 | `reeglid` | Kas kevadel tohib metsa raiuda? |
 
+## Vestluse mälu
+
+Bot mäletab **viimast asukohta, maakonda ja intenti** — sellest piisab
+jätkuküsimusteks:
+
+```
+> Kas kinnistul 46801:003:0053 on raieluba?     [teatised_asukohas]
+> Kas see on kaitse all?                        [kaitsealad_asukohas] mälust
+> Mis seal kasvab?                              [eraldise_info] mälust
+> Kui palju raiuti Võrumaal?                    [raie_maakonnas]
+> Aga Tartumaal?                                [raie_maakonnas] uus maakond
+> Kui hull on kooreüraskiolukord?               [kahjustused]
+> Aga Ida-Virumaal?                             [kahjustused] uus maakond
+```
+
+Kui vastus tugineb mälule, **öeldakse see kasutajale välja** ("Kasutan
+eelmist asukohta: …"), et ei jääks muljet nagu bot teaks midagi, mida
+kasutaja ei öelnud.
+
+Vanu vastuseid ega arve mälus EI hoita — iga vastus arvutatakse värsketest
+andmetest. Mälu kirjutatakse ainult õnnestunud lahenduse põhjal, seega
+vigane sisend ei riku eelmist head asukohta.
+
+Seansid on mälus (`src/router/kontekst.ts`), eluiga 2 h, max 500 seanssi.
+UI hoiab seansi ID-d `sessionStorage`-is; "Uus vestlus" nullib mälu.
+
 ## Käsud
 
 ```bash
@@ -77,6 +103,7 @@ npm run typecheck
 npx tsx scripts/kysi.ts "kas metsa raiutakse rohkem kui kasvab"
 npx tsx scripts/kysi.ts      # interaktiivne terminalivestlus
 npx tsx scripts/vestlus.ts   # 34 näidisküsimuse ruuteritest
+npx tsx scripts/malu.ts      # jätkuküsimuste voog (mälu test)
 npx tsx scripts/vestlus.ts --tais   # ka täisvastused
 ```
 
@@ -164,6 +191,7 @@ src/
   pipeline.ts            ruuter → tööriist → šabloon
   router/intents.ts      intentide definitsioonid (ühine LLM-promptiga)
   router/regex.ts        deterministlik ruuter
+  router/kontekst.ts     vestluse mälu (seansid)
   answer/templates.ts    eestikeelsed vastusešabloonid
   llm/{ollama,prompts,router}.ts
   tools/{statistika,pxweb,metsaregister,eelis,geocode,wfs,klassifikaatorid,teadmus}.ts
