@@ -1,0 +1,45 @@
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
+
+/**
+ * Minimaalne .env laadija - valdiks dotenv soltuvuse.
+ * Kutsu enne muude moodulite kasutamist (server.ts / smoke.ts esimene rida).
+ */
+export function loadEnv(file = ".env"): void {
+  const path = resolve(process.cwd(), file);
+  if (!existsSync(path)) return;
+  const raw = readFileSync(path, "utf8");
+  for (const line of raw.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq === -1) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let value = trimmed.slice(eq + 1).trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    if (!(key in process.env)) process.env[key] = value;
+  }
+}
+
+export function envStr(key: string, fallback: string): string {
+  const v = process.env[key];
+  return v === undefined || v === "" ? fallback : v;
+}
+
+export function envNum(key: string, fallback: number): number {
+  const v = process.env[key];
+  if (v === undefined || v === "") return fallback;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+export function envBool(key: string, fallback: boolean): boolean {
+  const v = process.env[key];
+  if (v === undefined || v === "") return fallback;
+  return /^(1|true|yes|jah)$/i.test(v.trim());
+}
