@@ -25,6 +25,8 @@ import type {
   EraldisteKokkuvote,
 } from "../tools/metsaregister.js";
 import type { KaitseStaatus } from "../tools/eelis.js";
+import type { IlmPrognoos, IlmVaatlus } from "../tools/ilm.js";
+import { onSademed } from "../tools/ilm.js";
 import type { Loik } from "../tools/teadmus.js";
 
 /**
@@ -533,10 +535,101 @@ export function kaitsealadVastus(
   return kokku([sisu, lahedal, kaviat], [k.allikas], [k.hoiatus]);
 }
 
+/// ---------------------------------------------------------------------------
+// Ilm (ilmateenistus)
+// ---------------------------------------------------------------------------
+
+type IlmVastuseAndmed = {
+  prognoos: IlmPrognoos;
+  vaatlus: IlmVaatlus | null;
+  homne?: boolean;
+  ainultSademed?: boolean;
+  asukoht?: string | null;
+};
+
+/** Kuupäeva järgi üks prognoosipäev (vaikimisi esimene ehk tänane). */
+function prognoosiPäev(prognoos: IlmPrognoos, homne: boolean) {
+  const päev = homne ? prognoos.kuupaevad[1] : prognoos.kuupaevad[0];
+  return (
+    päev ?? {
+      kuupaev: "",
+      päev: null,
+      öö: null,
+    }
+  );
+}
+
+function ilmLoigud(d: IlmVastuseAndmed): string[] {
+  const { prognoos, vaatlus, homne, ainultSademed, asukoht } = d;
+  const osad: string[] = [];
+  const päev = prognoosiPäev(prognoos, homne ?? false);
+  const ajaSilt = homne ? "Homme" : "Täna";
+  const linnaPrognoos = asukoht ? prognoos.linnad[asukoht] : undefined;
+
+  // 1) Sademed
+  if (ainultSademed) {
+    const sademed = linnaPrognoos
+      ? linnaPrognoos.onSademed
+      : päev.päev
+        ? onSademed(päev.päev.nahtus)
+        : prognoos.onSademed;
+    const kohas = asukoht ? `${asukoht} piirkonnas` : "Eestis";
+    osad.push(
+      sademed
+        ? `${ajaSilt} on ${kohas} prognoosi järgi sademeid — hoovihma või vihma.`
+        : `${ajaSilt} on ${kohas} prognoosi järgi sademedeta ilm.`,
+    );
+  }
+
+  // 2) Üldprognoos päev
+  if (päev.päev) {
+    const P = päev.päev;
+    let kirjeldus = `**${ajaSilt}** (${date(päev.kuupaev)}):`;
+    if (P.tempmin !== null && P.tempmax !== null) {
+      kirjeldus += ` temperatuur ${P.tempmin}…${P.tempmax} °C`;
+    } else if (P.tempmax !== null) {
+      kirjeldus += ` õhtul kuni ${P.tempmax} °C`;
+    }
+    if (P.nimi) kirjeldus += `, ${P.nimi}`;
+    osad.push(kirjeldus);
+    if (P.tekst && !P.tekst.startsWith(P.nimi)) osad.push(P.tekst);
+  }
+
+  // 3) Kotaandmed
+  if (asukoht && linnaPrognoos) {
+    osad.push(
+      `${asukoht} piirkonnas: ${linnaPrognoos.nimi}, ` +
+        `minimaalne temperatuur ${linnaPrognoos.tempmin} °C.`,
+    );
+  }
+
+  // 4) Praegune vaatlus
+  if (vaatlus && vaatlus.temperatuur !== null) {
+    const lohud: string[] = [
+      `Praegu on ${vaatlus.jaam} ilmajaama andmetel **${num(vaatlus.temperatuur)} °C**.`,
+    ];
+    if (vaatlus.nimi) lohud.push(`Nähtus: ${vaatlus.nimi}.`);
+    if (vaatlus.tuul !== null) lohud.push(`Tuul ${num(vaatlus.tuul, 1)} m/s.`);
+    osad.push(lohud.join(" "));
+  }
+
+  return osad;
+}
+
+export function ilmVastus(d: IlmVastuseAndmed): Vastus {
+  const loigud = ilmLoigud(d);
+  if (loigud.length === 0) {
+    return kokku(
+      ["Ilmaprognoosi hetkel kätte ei saanud, proovi natukese aja pärast."],
+      [],
+    );
+  }
+  return kokku(loigud, ["Keskkonnaagentuuri ilmateenistus (ilmateenistus.ee)"]);
+}
+
 // ---------------------------------------------------------------------------
 // 11. Reeglid (teadmusbaasist)
 // ---------------------------------------------------------------------------
-
 export function reeglidVastus(loigud: Loik[]): Vastus {
   if (loigud.length === 0) {
     return kokku(

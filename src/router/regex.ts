@@ -184,6 +184,22 @@ function asukohtVoiKontekst(
   return null;
 }
 
+/** Eesti suuremate linnade ja ilmajaamade nimed ilmaintendi asukohana. */
+const ILMA_ASUKOHAD = [
+  "Tallinn", "Tartu", "Pärnu", "Narva", "Kohtla-Järve", "Jõhvi", "Kuressaare",
+  "Haapsalu", "Viljandi", "Rakvere", "Võru", "Põlva", "Valga", "Rapla",
+  "Paide", "Türi", "Harku", "Kunda", "Pakri", "Tõravere", "Paldiski",
+] as const;
+
+/** Loeb ilmaintendi jaoks asukohalinna/jaama küsimusest. */
+function leiaIlmaAsukoht(t: string): string | null {
+  for (const linn of ILMA_ASUKOHAD) {
+    // Käändevormid (Tartus, Tallinnas, Pärnus) sisaldavad tüve alamstringina.
+    if (t.includes(linn.toLocaleLowerCase("et"))) return linn;
+  }
+  return null;
+}
+
 const REEGLID: Reegel[] = [
   // --- JÄTKUKÜSIMUS: sama küsimus, uus maakond ("aga Võrumaal?")
   //     Peab olema esimene, sest muidu haaraks mõni sisureegel selle endale.
@@ -369,6 +385,29 @@ const REEGLID: Reegel[] = [
       // Ei leitud maakonda aga on riigipõhine kontekst -> tavaliselt "Eestis"
       if (!kood && /eestis?\b/iu.test(k)) return { intent: "raie_kogus", aasta };
       return kood ? { intent: "raie_maakonnas", maakond: kood, aasta } : null;
+    },
+  },
+
+  // --- Ilm. Enne "reeglid", et "mis ilm täna on" ei jääks laia reegli alla.
+  {
+    nimi: "ilm",
+    kui: [
+      /\b(ilm|ilma|ilmastik|saab|sajab|sajus|sademe|vihma|lund|lumesaj|tuul|tuult|äike|torm(i|is)?\b|sooja|külm|temperatuur|temperatur|kraadi?|gradus|lumi maha|tuleoh|tuleoht|pilvi|pilves|udu|külma|päike|päikseline)\b/u,
+    ],
+    // Ära aja segi metsa "tormikahjustused" kui metsaprodukti küsimusega
+    valjaArvatud: [/(tormimurd|tuuleheide|tormikahjustus|tormi\s+murd)/u],
+    ehita: (k, t) => {
+      const homne = /\b(homme|järgmine päev|pärasthomme)\b/u.test(t);
+      const ainultSademed =
+        /\b(saab|sajab|sademe|vihma|lund|sajus)\b/u.test(t) &&
+        !/\b(mis ilm|milline ilm|ilmastik)\b/u.test(t);
+      const asukoht = leiaIlmaAsukoht(t);
+      return {
+        intent: "ilm",
+        ...(asukoht ? { asukoht } : {}),
+        ...(homne ? { homne: true } : {}),
+        ...(ainultSademed ? { ainultSademed: true } : {}),
+      };
     },
   },
 

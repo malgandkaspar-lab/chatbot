@@ -77,6 +77,16 @@ const KOMPLEKT: [string, string][] = [
   ["Mis vahe on turberaiel ja lageraiel?", "reeglid"],
   ["Kui palju säilikpuid tuleb alles jätta?", "reeglid"],
 
+  // ilm
+  ["Mis ilm täna on?", "ilm"],
+  ["Mis ilm on homme?", "ilm"],
+  ["Kas täna sajab?", "ilm"],
+  ["Kas sajab?", "ilm"],
+  ["Mis temperatuur Tartus praegu on?", "ilm"],
+  ["Kas Tallinnas sajab?", "ilm"],
+  ["Mis ilm Pärnus on?", "ilm"],
+  ["Milline ilm on Rakveres?", "ilm"],
+
   // tundmatu
   ["Kui kaua elab kilpkonn?", "tundmatu"],
   ["Tere!", "tundmatu"],

@@ -19,6 +19,7 @@ export const INTENDID = [
   "teatised_asukohas",
   "eraldise_info",
   "kaitsealad_asukohas",
+  "ilm",
   "reeglid",
   "tundmatu",
 ] as const;
@@ -37,6 +38,7 @@ export type Paring =
   | { intent: "teatised_asukohas"; asukoht: string }
   | { intent: "eraldise_info"; asukoht: string }
   | { intent: "kaitsealad_asukohas"; asukoht: string }
+  | { intent: "ilm"; asukoht?: string; homne?: boolean; ainultSademed?: boolean }
   | { intent: "reeglid"; kysimus: string }
   | { intent: "tundmatu" };
 
@@ -196,6 +198,20 @@ export const KIRJELDUSED: IntentKirjeldus[] = [
       "Kas kevadel tohib metsa raiuda?",
       "Mis vahe on turberaiel ja lageraiel?",
       "Kui kaua metsateatis kehtib?",
+    ],
+  },
+  {
+    nimi: "ilm",
+    kirjeldus:
+      "Ilma kohta käivad küsimused: praegune ilm, tänane/homne prognoos, sademed, temperatuur, tuleoht. Võib olla linnapõhine.",
+    parameetrid: [
+      { nimi: "asukoht", kirjeldus: "Linna või jaama nimi, kui küsitakse kindla koha ilma", kohustuslik: false },
+    ],
+    naited: [
+      "Mis ilm praegu on?",
+      "Mis ilm on homme?",
+      "Kas täna sajab?",
+      "Mis temperatuur Tartus praegu on?",
     ],
   },
 ];

@@ -18,6 +18,7 @@ import {
   eraldisteKokkuvote,
 } from "./tools/metsaregister.js";
 import { kaitseStaatus } from "./tools/eelis.js";
+import { ilmAsukohaJaoks } from "./tools/ilm.js";
 import { otsiTeadmus } from "./tools/teadmus.js";
 import { leiaAsukoht, paringuAla, type Asukoht } from "./tools/geocode.js";
 import { onKatastritunnus, KATASTRITUNNUS_RE } from "./tools/wfs.js";
@@ -290,6 +291,19 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
         vastus: T.kaitsealadVastus(k, fraas),
         lahendatudAsukoht: { sisend: paring.asukoht, nimi: fraas },
       };
+    }
+
+    case "ilm": {
+      const { prognoos, vaatlus } = await ilmAsukohaJaoks(paring.asukoht);
+      return ilmaAsukohta(
+        T.ilmVastus({
+          prognoos,
+          vaatlus,
+          homne: paring.homne,
+          ainultSademed: paring.ainultSademed,
+          asukoht: paring.asukoht,
+        }),
+      );
     }
 
     case "reeglid":
