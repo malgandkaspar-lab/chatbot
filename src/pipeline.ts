@@ -121,6 +121,13 @@ function uuendaKontekst(
     k.viimaneMaakond = paring.maakond;
     k.viimaneMaakonnaNimi = MAAKONNAD[paring.maakond] ?? paring.maakond;
   }
+
+  // Aastat hoiame ainult nende intentide juures, mis aastat üldse toetavad.
+  // NB: kui selline küsimus aastat EI maini, nullime mälu - muidu jääks
+  // varem küsitud aasta vaikselt järgmiste vastuste külge.
+  if (paring.intent === "raie_maakonnas" || paring.intent === "raie_kogus") {
+    k.viimaneAasta = paring.aasta ?? null;
+  }
 }
 
 /** Inimloetav asukohafraas vastuse alguseks. */

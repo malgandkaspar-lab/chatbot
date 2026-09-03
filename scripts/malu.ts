@@ -15,6 +15,13 @@ const voog = [
   // Maakonnapõhine, siis jätkuküsimus uue maakonnaga
   "Kui palju raiuti Võrumaal?",
   "Aga Ida-Virumaal?",
+  // ──── Aasta-konteksti test ────
+  // Aasta peab jätkuküsimusse kanduma
+  "Kui palju raiuti Tartumaal 2023. aastal?",
+  "Aga Pärnumaal?",              // peab jääma 2023-sse, mitte hüppama 2025
+  "Aga 2019?",                   // peab kasutama eelmist maakonda (Pärnumaa) + uus aasta
+  "Kui palju raiuti Eestis 2020. aastal kokku?", // uus küsimus, aasta=2020, riik
+  "Aga 2022?",                   // peab jääma riiklikule tasandile, mitte maakonnale
 ];
 
 for (const q of voog) {

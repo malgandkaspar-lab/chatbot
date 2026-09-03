@@ -110,6 +110,23 @@ function onMaakonnaJatkuk(kysimus: string, kood: string | null): boolean {
   return sonu <= 2;
 }
 
+/**
+ * Jätkuküsimus, mis kordab eelmist küsimust uue aastaga:
+ * "aga 2019?", "ja 2020. aastal?", "2018?"
+ *
+ * Sama tunnus nagu maakonna jätkuküsimusel: lause sisuks on ainult aasta.
+ */
+function onAastaJatkuk(kysimus: string): boolean {
+  const puhas = kysimus
+    .toLocaleLowerCase("et")
+    .replace(/[?!.,]/g, " ")
+    .replace(/\b(19[89]\d|20[0-4]\d)\b/gu, " ")
+    .replace(/\b(aga|ja|ning|siis|no|nt|näiteks|kas|aasta|aastal|aastas)\b/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return puhas.split(" ").filter(Boolean).length === 0;
+}
+
 // ---------------------------------------------------------------------------
 // Mustrid
 // ---------------------------------------------------------------------------
@@ -179,22 +196,55 @@ const REEGLID: Reegel[] = [
       if (!onMaakonnaJatkuk(kysimus, kood) || !kood) return null;
 
       const nimi = MAAKONNAD[kood] ?? kood;
-      const selgitus = `Jätkan eelmist küsimust, nüüd ${maakondInessive(nimi)}`;
+      // Aasta kandub jätkuküsimusse: "raiuti Tartumaal 2023" -> "aga
+      // Pärnumaal?" peab jääma 2023. aastasse, mitte hüppama viimasele.
+      const aasta = leiaAasta(kysimus) ?? k.viimaneAasta ?? undefined;
+      const aastaOsa = aasta ? `, ${aasta}. aasta` : "";
+      const selgitus = `Jätkan eelmist küsimust, nüüd ${maakondInessive(nimi)}${aastaOsa}`;
 
       switch (k.viimaneIntent) {
         case "raie_maakonnas":
-          return { paring: { intent: "raie_maakonnas", maakond: kood }, kontekstiSelgitus: selgitus };
+          return {
+            paring: { intent: "raie_maakonnas", maakond: kood, aasta },
+            kontekstiSelgitus: selgitus,
+          };
         case "uuendamine":
-          return { paring: { intent: "uuendamine", maakond: kood }, kontekstiSelgitus: selgitus };
+          return { paring: { intent: "uuendamine", maakond: kood }, kontekstiSelgitus: `Jätkan eelmist küsimust, nüüd ${maakondInessive(nimi)}` };
         case "kahjustused":
-          return { paring: { intent: "kahjustused", maakond: kood }, kontekstiSelgitus: selgitus };
+          return { paring: { intent: "kahjustused", maakond: kood }, kontekstiSelgitus: `Jätkan eelmist küsimust, nüüd ${maakondInessive(nimi)}` };
         default:
           // Muude intentide puhul on maakonnavaates mõistlik vaste raiemaht
           return {
-            paring: { intent: "raie_maakonnas", maakond: kood },
-            kontekstiSelgitus: `Näitan raiemahtu ${maakondInessive(nimi)}`,
+            paring: { intent: "raie_maakonnas", maakond: kood, aasta },
+            kontekstiSelgitus: `Näitan raiemahtu ${maakondInessive(nimi)}${aastaOsa}`,
           };
       }
+    },
+  },
+
+  // --- JÄTKUKÜSIMUS: sama küsimus, uus aasta ("aga 2019?")
+  {
+    nimi: "jatku_aasta",
+    kui: [/./u],
+    ehita: (kysimus, _t, k) => {
+      if (!k?.viimaneIntent) return null;
+      const aasta = leiaAasta(kysimus);
+      if (!aasta || !onAastaJatkuk(kysimus)) return null;
+
+      if (k.viimaneIntent === "raie_maakonnas" && k.viimaneMaakond) {
+        const nimi = k.viimaneMaakonnaNimi ?? k.viimaneMaakond;
+        return {
+          paring: { intent: "raie_maakonnas", maakond: k.viimaneMaakond, aasta },
+          kontekstiSelgitus: `Jätkan eelmist küsimust, nüüd ${aasta}. aasta ${maakondInessive(nimi)}`,
+        };
+      }
+      if (k.viimaneIntent === "raie_kogus") {
+        return {
+          paring: { intent: "raie_kogus", aasta },
+          kontekstiSelgitus: `Jätkan eelmist küsimust, nüüd ${aasta}. aasta`,
+        };
+      }
+      return null;
     },
   },
 

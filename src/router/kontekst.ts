@@ -20,6 +20,12 @@ export type Kontekst = {
   /** Maakonna kood Statistikaameti tabelites, nt "86". */
   viimaneMaakond: string | null;
   viimaneMaakonnaNimi: string | null;
+  /**
+   * Kasutaja küsitud aasta, nt "2023". Kandub jätkuküsimusse ("aga
+   * Pärnumaal?" peab jääma samasse aastasse). Kui uus täisküsimus aastat
+   * ei maini, nullime selle - vastasel juhul lekiks vana aasta edasi.
+   */
+  viimaneAasta: string | null;
   /** Mitu küsimust selles seansis. */
   kysimusi: number;
   uuendatud: number;
@@ -32,6 +38,7 @@ export function uusKontekst(): Kontekst {
     viimaneAsukohaNimi: null,
     viimaneMaakond: null,
     viimaneMaakonnaNimi: null,
+    viimaneAasta: null,
     kysimusi: 0,
     uuendatud: Date.now(),
   };
