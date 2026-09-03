@@ -3,7 +3,6 @@ const vorm = document.getElementById("vorm");
 const sisend = document.getElementById("sisend");
 const saadaNupp = document.getElementById("saada");
 const tervisDiv = document.getElementById("tervis");
-const naitedDiv = document.getElementById("naited");
 
 // Seansi ID hoiame sessionStorage'is, et mälu püsiks lehe uuendamisel,
 // aga eri kaardid oleksid eraldi vestlused.
@@ -14,27 +13,6 @@ const SEANSS =
     sessionStorage.setItem("metsabot-seanss", id);
     return id;
   })();
-
-const NAITED = [
-  "Kas metsa raiutakse rohkem kui juurde kasvab?",
-  "Kui suur osa Eestist on metsa all?",
-  "Kui palju raiuti Võrumaal?",
-  "Kui palju raiuti Eestis kokku metsa 2025. aastal?",
-  "Kas kinnistul 46801:003:0053 on raieluba?",
-  "Mis metsa kasvab katastriüksusel 46801:003:0053?",
-  "Kas kevadel tohib metsa raiuda?",
-  "Kui hull on kooreüraskiolukord?",
-];
-
-for (const n of NAITED) {
-  const b = document.createElement("button");
-  b.textContent = n;
-  b.onclick = () => {
-    sisend.value = n;
-    vorm.requestSubmit();
-  };
-  naitedDiv.append(b);
-}
 
 // --- Väga väike markdown-renderdaja -------------------------------------
 // Vajame ainult seda, mida šabloonid tegelikult kasutavad: pealkirjad,

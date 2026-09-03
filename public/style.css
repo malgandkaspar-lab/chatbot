@@ -273,30 +273,15 @@ main {
   margin: 0 0 0.2rem 0.25rem;
 }
 
-/* ---- Näidisküsimused ---- */
+/* ---- Tutvustuskast: paremal, kus varem olid näidisküsimused ---- */
 
-.naited {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  max-width: 32rem;
+.tutvustus {
+  justify-content: flex-end;
 }
 
-.naited button {
-  background: var(--kaart);
-  border: 1px solid var(--piir);
-  border-radius: 999px;
-  padding: 0.35rem 0.8rem;
-  font-size: 0.8rem;
-  font-family: inherit;
-  color: var(--roheline);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.naited button:hover {
-  border-color: var(--roheline);
-  background: var(--roheline-hele);
+.tutvustus .sisu {
+  border-radius: 14px;
+  border-top-right-radius: 4px;
 }
 
 /* ---- Alumine riba ---- */
