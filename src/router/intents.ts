@@ -30,8 +30,8 @@ export type Paring =
   | { intent: "metsavaru_trend" }
   | { intent: "metsasus" }
   | { intent: "raie_liigiti" }
-  | { intent: "raie_kogus" }
-  | { intent: "raie_maakonnas"; maakond: string }
+  | { intent: "raie_kogus"; aasta?: string }
+  | { intent: "raie_maakonnas"; maakond: string; aasta?: string }
   | { intent: "uuendamine"; maakond?: string }
   | { intent: "kahjustused"; maakond?: string }
   | { intent: "teatised_asukohas"; asukoht: string }

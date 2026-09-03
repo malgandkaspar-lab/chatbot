@@ -216,6 +216,14 @@ export function raieLiigitiVastus(r: RaieLiigiti): Vastus {
 // 5. Raie maakonnas
 // ---------------------------------------------------------------------------
 
+/** Teade, kui kasutaja küsis aastat, mida tabelis ei ole. */
+function aastaMarkus(r: RaieMaakonnas): string | null {
+  return r.kysitudAastaPuudub
+    ? `Küsisid ${r.kysitudAastaPuudub}. aasta kohta, aga seda aastat ` +
+        `tabelis veel ei ole — allpool on viimane avaldatud aasta ${r.aasta}.`
+    : null;
+}
+
 export function raieKogusVastus(r: RaieMaakonnas): Vastus {
   const sisu =
     `Eestis raiuti ${r.aasta}. aastal **${m3(r.raiemaht)}** puitu` +
@@ -229,7 +237,7 @@ export function raieKogusVastus(r: RaieMaakonnas): Vastus {
         `${m3(r.erametsa)} (${pct((r.erametsa / r.raiemaht) * 100)}).`
       : null;
 
-  return kokku([sisu, omand], [ALLIKAS.DOKUMENDID], [
+  return kokku([aastaMarkus(r), sisu, omand], [ALLIKAS.DOKUMENDID], [
     "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
       "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
       "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
@@ -252,7 +260,7 @@ export function raieMaakonnasVastus(r: RaieMaakonnas): Vastus {
         `${m3(r.erametsa)} (${pct((r.erametsa / r.raiemaht) * 100)}).`
       : null;
 
-  return kokku([sisu, omand], [ALLIKAS.DOKUMENDID], [
+  return kokku([aastaMarkus(r), sisu, omand], [ALLIKAS.DOKUMENDID], [
     "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
       "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
       "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +

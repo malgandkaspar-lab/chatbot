@@ -38,6 +38,9 @@ const KOMPLEKT: [string, string][] = [
   ["Kui palju raiuti Eestis kokku metsa 2025. aastal?", "raie_kogus"],
   ["Kui palju puitu raiuti Eestis kokku?", "raie_kogus"],
   ["Palju on Eesti aastane raiemaht?", "raie_kogus"],
+  // Raieverb ei tohi sattuda metsasuse alla, kuigi lauses on "eestis metsa"
+  ["Kui palju raiuti eestis metsa eelmine aasta?", "raie_kogus"],
+  ["Kui palju metsa raiuti Eestis möödunud aastal?", "raie_kogus"],
 
   // maakond
   ["Kui palju raiuti Võrumaal?", "raie_maakonnas"],

@@ -344,6 +344,12 @@ export async function raieLiigiti(): Promise<RaieLiigiti> {
 
 export type RaieMaakonnas = {
   aasta: string;
+  /**
+   * Kasutaja küsitud aasta, kui see EI olnud tabelis saadaval. Vastuses
+   * tuleb siis selgelt öelda, millise aasta andmeid tegelikult näidatakse -
+   * vaikimisi vale aasta andmete näitamine oleks eksitav.
+   */
+  kysitudAastaPuudub?: string;
   maakond: string;
   maakonnaKood: string;
   raiemaht: number;
@@ -372,8 +378,16 @@ export function leiaMaakonnaKood(sisend: string): string | null {
 
 export async function raieMaakonnas(
   maakonnaKood: string,
+  soovitudAasta?: string,
 ): Promise<RaieMaakonnas> {
-  const aasta = await latestYear(TABLES.MM04);
+  // Kui kasutaja küsis kindlat aastat, kasutame seda ainult juhul, kui see
+  // on tabelis olemas. Muidu näitaksime vaikselt vale aasta andmeid.
+  const { values: aastad } = await dimValues(TABLES.MM04, "Aasta");
+  const viimane = aastad[aastad.length - 1]!;
+  const leitud = soovitudAasta && aastad.includes(soovitudAasta);
+  const aasta = leitud ? soovitudAasta! : viimane;
+  const kysitudAastaPuudub =
+    soovitudAasta && !leitud ? soovitudAasta : undefined;
 
   // Kogu Eesti ("00") puhul ei tohi maakonda dubleerida - ["00","00"] tekitab
   // PxWebis 400 vea. Ainsana loeme sel juhul riigipõhise rea.
@@ -408,6 +422,7 @@ export async function raieMaakonnas(
 
   return {
     aasta,
+    ...(kysitudAastaPuudub ? { kysitudAastaPuudub } : {}),
     maakond: MAAKONNAD[maakonnaKood] ?? maakonnaKood,
     maakonnaKood,
     raiemaht,

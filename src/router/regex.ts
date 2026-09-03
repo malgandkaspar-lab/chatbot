@@ -247,7 +247,10 @@ const REEGLID: Reegel[] = [
   // --- Metsasus
   {
     nimi: "metsasus",
-    kui: [/(metsasus|metsa all|metsaga kaetud|kui suur osa eestist|kui palju (?:on\s+)?eestis metsa|palju (?:on\s+)?[\wõäöüšž\-]+ eestis metsa|protsent(?:i)? metsa)/u],
+    kui: [/(metsasus|metsa all|metsaga kaetud|kui suur osa eestist|kui palju (?:on\s+)?eestis metsa|palju (?:on\s+)?(?:terves|kogu|kokku)\s+eestis metsa|protsent(?:i)? metsa)/u],
+    // Raieverb tähendab, et küsitakse raiemahtu, mitte metsaga kaetud pindala.
+    // Ilma selleta haaraks "palju RAIUTI eestis metsa" ekslikult metsasuse.
+    valjaArvatud: [/(raiu|raie|raiuti|raiutakse|langeta)/u],
     ehita: () => ({ intent: "metsasus" }),
   },
 
@@ -303,7 +306,7 @@ const REEGLID: Reegel[] = [
       /(raiu|raie|raiemaht|raiutakse|raiuti)/u,
       /(eestis?|kogu riigis|üle eesti|kokku)/u,
     ],
-    ehita: () => ({ intent: "raie_kogus" }),
+    ehita: (k) => ({ intent: "raie_kogus", aasta: leiaAasta(k) }),
   },
 
   // --- Raie maakonnas
@@ -312,9 +315,10 @@ const REEGLID: Reegel[] = [
     kui: [/\b(raiu|raie|raiemaht|raiutakse|raiuti)/u],
     ehita: (k) => {
       const kood = leiaMaakond(k);
+      const aasta = leiaAasta(k);
       // Ei leitud maakonda aga on riigipõhine kontekst -> tavaliselt "Eestis"
-      if (!kood && /eestis?\b/iu.test(k)) return { intent: "raie_kogus" };
-      return kood ? { intent: "raie_maakonnas", maakond: kood } : null;
+      if (!kood && /eestis?\b/iu.test(k)) return { intent: "raie_kogus", aasta };
+      return kood ? { intent: "raie_maakonnas", maakond: kood, aasta } : null;
     },
   },
 
@@ -327,6 +331,19 @@ const REEGLID: Reegel[] = [
     ehita: (k) => ({ intent: "reeglid", kysimus: k }),
   },
 ];
+
+/**
+ * Loeb küsimusest aastaarvu ("2023. aastal", "aastal 2019").
+ *
+ * "eelmine/möödunud aasta" jätame tahtlikult lugemata: statistika viimane
+ * avaldatud aasta ONGI praktikas eelmine aasta, ja kui me arvutaks siin
+ * ise praegusest aastast maha, võiksime küsida aastat, mida tabelis veel
+ * pole.
+ */
+function leiaAasta(kysimus: string): string | undefined {
+  const m = /\b(19[89]\d|20[0-4]\d)\b/u.exec(kysimus);
+  return m ? m[1] : undefined;
+}
 
 function leiaMaakond(kysimus: string): string | null {
   // Otsi maakonnanime kõigist sõnadest ja sõnapaaridest (nt "Ida-Viru")
