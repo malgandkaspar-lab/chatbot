@@ -141,10 +141,6 @@ export async function chatStream(
       throw new Error(`Ollama ${res.status}`);
     }
 
-    const timer = setTimeout(() => {
-  lugeja.cancel();
-}, 5000);
-
     const lugeja = res.body.getReader();
     const dekooder = new TextDecoder();
     let puhver = "";
