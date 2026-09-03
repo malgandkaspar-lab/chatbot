@@ -32,7 +32,7 @@ export async function llmRuuter(kysimus: string): Promise<Paring | null> {
       { role: "system", content: ruuteriPrompt() },
       { role: "user", content: kysimus },
     ],
-    { json: true, temperature: 0, maxTokens: 200, timeoutS: envNum("LLM_ROUTER_TIMEOUT_S", 10) },
+    { json: true, temperature: 0, maxTokens: 200, timeoutS: envNum("LLM_ROUTER_TIMEOUT_S", 1) },
   );
 
   let j: LlmVastus;
