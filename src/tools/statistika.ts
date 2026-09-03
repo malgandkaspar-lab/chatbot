@@ -375,9 +375,14 @@ export async function raieMaakonnas(
 ): Promise<RaieMaakonnas> {
   const aasta = await latestYear(TABLES.MM04);
 
+  // Kogu Eesti ("00") puhul ei tohi maakonda dubleerida - ["00","00"] tekitab
+  // PxWebis 400 vea. Ainsana loeme sel juhul riigipõhise rea.
+  const loetlemine = maakonnaKood === "00";
+  const maakonnad = loetlemine ? ["00"] : [maakonnaKood, "00"];
+
   const ds = await pxQuery(TABLES.MM04, {
     Aasta: [aasta],
-    Maakond: [maakonnaKood, "00"],
+    Maakond: maakonnad,
     "Raie liik": ["1"], // Koguraie
     "Metsamaa liik": ["1", "2", "3"], // Kokku, Riigimetsamaa, Erametsamaa
     Näitaja: ["1", "2"], // Raiepindala ha, Raiemaht m3
@@ -394,7 +399,7 @@ export async function raieMaakonnas(
 
   // Põhinäitajad on kohustuslikud - kui puuduvad, on parem viga kui vale arv.
   const raiemaht = val(maakonnaKood, "1", "2");
-  const eestiKokku = val("00", "1", "2");
+  const eestiKokku = loetlemine ? raiemaht : val("00", "1", "2");
   if (raiemaht === null || eestiKokku === null) {
     throw new Error(
       `MM04-s puuduvad ${aasta} raiemahu andmed maakonnale ${maakonnaKood}`,

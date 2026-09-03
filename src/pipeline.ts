@@ -195,6 +195,9 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
       });
     }
 
+    case "raie_kogus":
+      return ilmaAsukohta(T.raieKogusVastus(await raieMaakonnas("00")));
+
     case "raie_maakonnas":
       return ilmaAsukohta(
         T.raieMaakonnasVastus(await raieMaakonnas(paring.maakond)),

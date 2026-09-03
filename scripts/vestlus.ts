@@ -34,6 +34,11 @@ const KOMPLEKT: [string, string][] = [
   ["Kui palju on lageraiet võrreldes harvendusraiega?", "raie_liigiti"],
   ["Mis osa raiest on lageraie?", "raie_liigiti"],
 
+  // raie kogu Eestis
+  ["Kui palju raiuti Eestis kokku metsa 2025. aastal?", "raie_kogus"],
+  ["Kui palju puitu raiuti Eestis kokku?", "raie_kogus"],
+  ["Palju on Eesti aastane raiemaht?", "raie_kogus"],
+
   // maakond
   ["Kui palju raiuti Võrumaal?", "raie_maakonnas"],
   ["Kui palju metsa raiutakse Ida-Virumaal?", "raie_maakonnas"],

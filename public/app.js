@@ -19,6 +19,7 @@ const NAITED = [
   "Kas metsa raiutakse rohkem kui juurde kasvab?",
   "Kui suur osa Eestist on metsa all?",
   "Kui palju raiuti Võrumaal?",
+  "Kui palju raiuti Eestis kokku metsa 2025. aastal?",
   "Kas kinnistul 46801:003:0053 on raieluba?",
   "Mis metsa kasvab katastriüksusel 46801:003:0053?",
   "Kas kevadel tohib metsa raiuda?",

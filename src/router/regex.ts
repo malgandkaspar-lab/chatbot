@@ -296,12 +296,24 @@ const REEGLID: Reegel[] = [
     },
   },
 
+  // --- Raie kogu Eestis ("kui palju raiuti Eestis kokku?")
+  {
+    nimi: "raie_kogus",
+    kui: [
+      /(raiu|raie|raiemaht|raiutakse|raiuti)/u,
+      /(eestis?|kogu riigis|üle eesti|kokku)/u,
+    ],
+    ehita: () => ({ intent: "raie_kogus" }),
+  },
+
   // --- Raie maakonnas
   {
     nimi: "raie_maakonnas",
     kui: [/\b(raiu|raie|raiemaht|raiutakse|raiuti)/u],
     ehita: (k) => {
       const kood = leiaMaakond(k);
+      // Ei leitud maakonda aga on riigipõhine kontekst -> tavaliselt "Eestis"
+      if (!kood && /eestis?\b/iu.test(k)) return { intent: "raie_kogus" };
       return kood ? { intent: "raie_maakonnas", maakond: kood } : null;
     },
   },

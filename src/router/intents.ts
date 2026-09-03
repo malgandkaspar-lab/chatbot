@@ -12,6 +12,7 @@ export const INTENDID = [
   "metsavaru_trend",
   "metsasus",
   "raie_liigiti",
+  "raie_kogus",
   "raie_maakonnas",
   "uuendamine",
   "kahjustused",
@@ -29,6 +30,7 @@ export type Paring =
   | { intent: "metsavaru_trend" }
   | { intent: "metsasus" }
   | { intent: "raie_liigiti" }
+  | { intent: "raie_kogus" }
   | { intent: "raie_maakonnas"; maakond: string }
   | { intent: "uuendamine"; maakond?: string }
   | { intent: "kahjustused"; maakond?: string }
@@ -87,6 +89,16 @@ export const KIRJELDUSED: IntentKirjeldus[] = [
     naited: [
       "Kui palju on lageraiet võrreldes harvendusraiega?",
       "Mis osa raiest on lageraie?",
+    ],
+  },
+  {
+    nimi: "raie_kogus",
+    kirjeldus: "Kogu Eesti raiemaht ja -pindala, riigi- ja erametsa kaupa.",
+    parameetrid: [],
+    naited: [
+      "Kui palju raiuti Eestis kokku metsa 2025. aastal?",
+      "Kui palju puitu raiuti Eestis kokku?",
+      "Palju on Eesti aastane raiemaht?",
     ],
   },
   {

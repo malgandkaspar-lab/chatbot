@@ -216,6 +216,27 @@ export function raieLiigitiVastus(r: RaieLiigiti): Vastus {
 // 5. Raie maakonnas
 // ---------------------------------------------------------------------------
 
+export function raieKogusVastus(r: RaieMaakonnas): Vastus {
+  const sisu =
+    `Eestis raiuti ${r.aasta}. aastal **${m3(r.raiemaht)}** puitu` +
+    (r.raiepindala !== null ? ` pindalalt ${ha(r.raiepindala)}` : "") +
+    `.`;
+
+  const omand =
+    r.riigimets !== null && r.erametsa !== null
+      ? `Omandi järgi: riigimetsast ${m3(r.riigimets)} ` +
+        `(${pct((r.riigimets / r.raiemaht) * 100)}) ja erametsast ` +
+        `${m3(r.erametsa)} (${pct((r.erametsa / r.raiemaht) * 100)}).`
+      : null;
+
+  return kokku([sisu, omand], [ALLIKAS.DOKUMENDID], [
+    "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
+      "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
+      "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
+      "11,7 miljonit m³ ja raiedokumendid 12,5 miljonit m³.",
+  ]);
+}
+
 export function raieMaakonnasVastus(r: RaieMaakonnas): Vastus {
   const kohas = maakondInessive(r.maakond);
   const sisu =
@@ -242,7 +263,6 @@ export function raieMaakonnasVastus(r: RaieMaakonnas): Vastus {
 // ---------------------------------------------------------------------------
 // 6. Uuendamine
 // ---------------------------------------------------------------------------
-
 const hOrNull = (v: number | null) => (v === null ? "andmed puuduvad" : ha(v));
 
 export function uuendamineVastus(u: Uuendamine): Vastus {
