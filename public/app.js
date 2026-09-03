@@ -131,6 +131,113 @@ function markdown(tekst) {
   return out.join("");
 }
 
+// --- Graafikud -----------------------------------------------------------
+// Lihtsad SVG-diagrammid ilma teekideta: tulpdiagramm ja joondiagramm.
+// Andmed tulevad serverist ("lopp" sündmuse graafik-väljas).
+
+function joonistaGraafik(g) {
+  const wrapp = document.createElement("div");
+  wrapp.className = "graafik";
+  const pealkiri = document.createElement("p");
+  pealkiri.className = "pealkiri";
+  pealkiri.textContent = g.uhik ? `Ühik: ${g.uhik}` : "";
+  wrapp.append(pealkiri);
+
+  const L = 380;
+  const K = 150;
+  const pa = 6;
+  const po = 22;
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${L} ${K}`);
+  svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+
+  if (g.tyyp === "tulp") {
+    const n = g.vaartused.length;
+    const max = Math.max(...g.vaartused, 1e-9);
+    const rida = (K - po - pa * 2) / max;
+    const laius = Math.min(34, ((L - pa * 2 - (n - 1) * 4) / n) | 0);
+    const kogu = pa * 2 + n * laius + (n - 1) * 4;
+    let x = pa + Math.max(0, (L - kogu) / 2);
+    g.vaartused.forEach((v, i) => {
+      const h = Math.max(v * rida, 2);
+      const y = K - po - h;
+      const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+      rect.setAttribute("x", x);
+      rect.setAttribute("y", y);
+      rect.setAttribute("width", laius);
+      rect.setAttribute("height", h);
+      rect.setAttribute("rx", 3);
+      rect.setAttribute("fill", "#2d6a4f");
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      t.textContent = `${g.sildid[i]}: ${fmtArv(v)} ${g.uhik}`;
+      rect.append(t);
+      svg.append(rect);
+      const silt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      silt.setAttribute("x", x + laius / 2);
+      silt.setAttribute("y", K - po + 10);
+      silt.setAttribute("text-anchor", "middle");
+      silt.setAttribute("font-size", "9");
+      silt.setAttribute("fill", "#6b7280");
+      silt.textContent = luhikeSilt(g.sildid[i]);
+      svg.append(silt);
+      x += laius + 4;
+    });
+  } else {
+    // rida
+    const n = g.vaartused.length;
+    const min = Math.min(...g.vaartused, 0);
+    const max = Math.max(...g.vaartused, min + 1e-9);
+    const ulatus = max - min || 1;
+    const ka = (K - po - pa * 2) / (ulatus * 1.08);
+    const kx = (L - pa * 2) / Math.max(n - 1, 1);
+    const punktid = g.vaartused.map((v, i) => {
+      const x = pa + i * kx;
+      const y = K - po - (v - min + ulatus * 0.04) * ka;
+      return [x, y];
+    });
+    const joon = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+    joon.setAttribute("points", punktid.map((p) => p.join(",")).join(" "));
+    joon.setAttribute("fill", "none");
+    joon.setAttribute("stroke", "#2d6a4f");
+    joon.setAttribute("stroke-width", "2.4");
+    joon.setAttribute("stroke-linejoin", "round");
+    svg.append(joon);
+    punktid.forEach(([x, y], i) => {
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", x);
+      c.setAttribute("cy", y);
+      c.setAttribute("r", "3");
+      c.setAttribute("fill", "#1e4d39");
+      const t = document.createElementNS("http://www.w3.org/2000/svg", "title");
+      t.textContent = `${g.sildid[i]}: ${fmtArv(g.vaartused[i])} ${g.uhik}`;
+      c.append(t);
+      svg.append(c);
+      if (i % 2 === 0 || i === n - 1) {
+        const silt = document.createElementNS("http://www.w3.org/2000/svg", "text");
+        silt.setAttribute("x", x);
+        silt.setAttribute("y", K - 4);
+        silt.setAttribute("text-anchor", "middle");
+        silt.setAttribute("font-size", "9");
+        silt.setAttribute("fill", "#6b7280");
+        silt.textContent = g.sildid[i];
+        svg.append(silt);
+      }
+    });
+  }
+
+  wrapp.append(svg);
+  return wrapp;
+}
+
+function luhikeSilt(s) {
+  const osad = s.replace(/\(.+\)/, "").trim().split(/\s+/);
+  return osad[0]?.length > 9 ? osad[0].slice(0, 8) + "…" : osad[0];
+}
+
+function fmtArv(v) {
+  return Math.round(v).toLocaleString("et-EE");
+}
+
 // --- Vestluse UI ---------------------------------------------------------
 
 function lisaSonum(klass) {
@@ -155,7 +262,8 @@ async function kysi(kysimus) {
   const { el, sisu } = lisaSonum("bot");
   const staatus = document.createElement("div");
   staatus.className = "staatus";
-  staatus.textContent = "Ühendan…";
+  staatus.innerHTML =
+    'Ühendan…<span class="tipikd"><i></i><i></i><i></i></span>';
   sisu.append(staatus);
 
   saadaNupp.disabled = true;
@@ -196,7 +304,13 @@ async function kysi(kysimus) {
         }
 
         if (syndmus === "staatus") {
-          staatus.textContent = d.sonum;
+          staatus.textContent = d.sonum + "…";
+          staatus.append(
+            Object.assign(document.createElement("span"), {
+              className: "tipikd",
+              innerHTML: "<i></i><i></i><i></i>",
+            }),
+          );
         } else if (syndmus === "kontekst") {
           // Ütleme selgelt välja, kui vastus tugineb varasemale vestlusele
           const c = document.createElement("div");
@@ -223,6 +337,9 @@ async function kysi(kysimus) {
             a.className = "allikas";
             a.textContent = `Allikas: ${d.allikad.join("; ")}`;
             sisu.append(a);
+          }
+          if (d.graafik) {
+            sisu.append(joonistaGraafik(d.graafik));
           }
           for (const h of d.hoiatused ?? []) {
             const w = document.createElement("div");

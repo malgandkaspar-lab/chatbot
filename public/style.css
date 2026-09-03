@@ -1,16 +1,24 @@
 :root {
   --roheline: #2d6a4f;
-  --roheline-hele: #d8f3dc;
-  --hall: #f4f4f2;
+  --roheline-tume: #1e4d39;
+  --roheline-hele: #e6f4ec;
+  --hall: #f5f6f4;
   --tekst: #1b1b1b;
-  --nork: #666;
-  --piir: #dcdcd8;
+  --nork: #6b7280;
+  --piir: #e2e4df;
   --hoiatus: #8a5a00;
   --hoiatus-taust: #fff8e6;
+  --kaart: #ffffff;
+  --varj: 0 1px 3px rgba(20, 40, 30, 0.08);
 }
 
 * {
   box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
 }
 
 body {
@@ -19,223 +27,284 @@ body {
   font-size: 16px;
   line-height: 1.55;
   color: var(--tekst);
-  background: var(--hall);
+  background: linear-gradient(180deg, #eef3ee 0%, var(--hall) 260px);
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
 }
 
+/* ---- Peaala ---- */
+
 header {
-  background: var(--roheline);
-  color: #fff;
-  padding: 1.1rem 1.25rem 0.9rem;
+  color: var(--tekst);
+  padding: 0.9rem 1rem 0.5rem;
+}
+
+.pais {
+  max-width: 44rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.logo {
+  font-size: 1.7rem;
+  line-height: 1;
 }
 
 header h1 {
   margin: 0;
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   letter-spacing: -0.01em;
 }
 
 .alapealkiri {
-  margin: 0.35rem 0 0;
-  font-size: 0.85rem;
-  opacity: 0.85;
-  max-width: 70ch;
+  margin: 0.15rem 0 0;
+  font-size: 0.78rem;
+  color: var(--nork);
 }
 
 .tervis {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  opacity: 0.8;
+  max-width: 44rem;
+  margin: 0.3rem auto 0;
+  font-size: 0.72rem;
+  color: var(--nork);
 }
+
+/* ---- Vestlusala ---- */
 
 main {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  scroll-behavior: smooth;
+  padding: 0.4rem 1rem 0.6rem;
+  display: flex;
+  justify-content: center;
 }
 
 .vestlus {
-  max-width: 62rem;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 44rem;
 }
 
 .sonum {
-  background: #fff;
-  border: 1px solid var(--piir);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
+  display: flex;
+  animation: ilm 0.25s ease-out;
+}
+
+@keyframes ilm {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.sonum.bot {
+  justify-content: flex-start;
 }
 
 .sonum.kasutaja {
-  background: var(--roheline-hele);
-  border-color: #b7e4c7;
-  align-self: flex-end;
-  max-width: 85%;
-  font-weight: 500;
+  justify-content: flex-end;
 }
 
-.sonum.viga {
-  background: #fdecea;
-  border-color: #f5c6c2;
+.sonum.viga .sisu {
+  border-color: #d9534f;
 }
 
-.sisu > :first-child {
+.sisu {
+  max-width: min(32rem, 88%);
+  background: var(--kaart);
+  border-radius: 14px;
+  border-top-left-radius: 4px;
+  padding: 0.65rem 0.9rem;
+  box-shadow: var(--varj);
+  font-size: 0.95rem;
+  overflow-wrap: break-word;
+}
+
+.sonum.kasutaja .sisu {
+  background: var(--roheline);
+  color: #fff;
+  border-radius: 14px;
+  border-top-right-radius: 4px;
+}
+
+.sisu p {
+  margin: 0.35rem 0;
+}
+
+.sisu p:first-child {
   margin-top: 0;
 }
-.sisu > :last-child {
+
+.sisu p:last-child {
   margin-bottom: 0;
 }
 
 .sisu table {
   border-collapse: collapse;
   width: 100%;
-  margin: 0.7rem 0;
-  font-size: 0.87rem;
-  display: block;
-  overflow-x: auto;
+  margin: 0.5rem 0;
+  font-size: 0.85rem;
 }
 
 .sisu th,
 .sisu td {
   border: 1px solid var(--piir);
-  padding: 0.32rem 0.55rem;
+  padding: 0.3rem 0.5rem;
   text-align: left;
-  white-space: nowrap;
 }
 
 .sisu th {
-  background: var(--hall);
-  font-weight: 600;
+  background: var(--roheline-hele);
+}
+
+.sisu ul {
+  margin: 0.4rem 0;
+  padding-left: 1.2rem;
 }
 
 .sisu code {
   background: var(--hall);
-  padding: 0.1rem 0.3rem;
-  border-radius: 3px;
-  font-size: 0.88em;
-}
-
-.sisu h3 {
-  font-size: 1rem;
-  margin: 1rem 0 0.4rem;
-  color: var(--roheline);
-}
-
-.allikas {
-  margin-top: 0.8rem;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--piir);
-  font-size: 0.78rem;
-  color: var(--nork);
-}
-
-.hoiatus {
-  margin-top: 0.6rem;
-  padding: 0.55rem 0.7rem;
-  background: var(--hoiatus-taust);
-  border-left: 3px solid var(--hoiatus);
   border-radius: 4px;
-  font-size: 0.8rem;
-  color: var(--hoiatus);
-}
-
-.meta {
-  margin-top: 0.5rem;
-  font-size: 0.7rem;
-  color: #999;
-  font-family: ui-monospace, monospace;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.85em;
 }
 
 .staatus {
-  font-size: 0.85rem;
   color: var(--nork);
-  font-style: italic;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
 }
+
+.staatus .tipikd {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.staatus .tipikd i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--nork);
+  animation: hupp 1s infinite;
+}
+
+.staatus .tipikd i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.staatus .tipikd i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes hupp {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+
+.kontekst {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--roheline);
+  background: var(--roheline-hele);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  margin-bottom: 0.45rem;
+}
+
+.allikas,
+.meta {
+  font-size: 0.72rem;
+  color: var(--nork);
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--piir);
+  padding-top: 0.35rem;
+}
+
+.hoiatus {
+  font-size: 0.8rem;
+  color: var(--hoiatus);
+  background: var(--hoiatus-taust);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.sonum.viga .sisu {
+  background: #fbeaea;
+}
+
+/* ---- Graafik ---- */
+
+.graafik {
+  margin-top: 0.6rem;
+  background: var(--hall);
+  border: 1px solid var(--piir);
+  border-radius: 10px;
+  padding: 0.4rem 0.5rem 0.2rem;
+}
+
+.graafik svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.graafik .pealkiri {
+  font-size: 0.72rem;
+  color: var(--nork);
+  margin: 0 0 0.2rem 0.25rem;
+}
+
+/* ---- Näidisküsimused ---- */
 
 .naited {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.6rem;
+  gap: 0.45rem;
+  max-width: 32rem;
 }
 
 .naited button {
-  background: #fff;
-  border: 1px solid var(--roheline);
-  color: var(--roheline);
+  background: var(--kaart);
+  border: 1px solid var(--piir);
   border-radius: 999px;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   font-size: 0.8rem;
-  cursor: pointer;
   font-family: inherit;
+  color: var(--roheline);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .naited button:hover {
-  background: var(--roheline-hele);
-}
-
-.vorm {
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: #fff;
-  border-top: 1px solid var(--piir);
-}
-
-.vorm input {
-  flex: 1;
-  padding: 0.65rem 0.8rem;
-  font-size: 1rem;
-  font-family: inherit;
-  border: 1px solid var(--piir);
-  border-radius: 8px;
-}
-
-.vorm input:focus {
-  outline: 2px solid var(--roheline);
   border-color: var(--roheline);
-}
-
-.vorm button {
-  padding: 0.65rem 1.3rem;
-  font-size: 1rem;
-  font-family: inherit;
-  background: var(--roheline);
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.vorm button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-footer {
-  padding: 0.6rem 1rem 1rem;
-  font-size: 0.75rem;
-  color: var(--nork);
-  text-align: center;
-}
-
-footer a {
-  color: var(--roheline);
-}
-
-.kontekst {
-  font-size: 0.78rem;
-  color: var(--roheline);
   background: var(--roheline-hele);
-  border-radius: 4px;
-  padding: 0.3rem 0.55rem;
-  margin-bottom: 0.5rem;
-  display: inline-block;
+}
+
+/* ---- Alumine riba ---- */
+
+.alumine {
+  padding: 0.4rem 1rem 0.7rem;
+  background: var(--hall);
+  border-top: 1px solid var(--piir);
 }
 
 .maluriba {
@@ -243,10 +312,9 @@ footer a {
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  max-width: 62rem;
-  margin: 0 auto;
-  padding: 0.4rem 1rem;
-  font-size: 0.78rem;
+  max-width: 44rem;
+  margin: 0 auto 0.4rem;
+  font-size: 0.75rem;
   color: var(--nork);
 }
 
@@ -264,4 +332,74 @@ footer a {
 .maluriba button:hover {
   border-color: var(--roheline);
   color: var(--roheline);
+}
+
+.vorm {
+  display: flex;
+  gap: 0.5rem;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+
+.vorm input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  border: 1px solid var(--piir);
+  border-radius: 999px;
+  outline: none;
+  background: var(--kaart);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.vorm input:focus {
+  border-color: var(--roheline);
+  box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
+}
+
+.vorm button {
+  width: 2.9rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--roheline);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.vorm button:hover {
+  background: var(--roheline-tume);
+}
+
+.vorm button:active {
+  transform: scale(0.94);
+}
+
+.vorm button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+footer {
+  max-width: 44rem;
+  margin: 0.5rem auto 0;
+  font-size: 0.72rem;
+  color: var(--nork);
+  text-align: center;
+}
+
+footer a {
+  color: var(--roheline);
+}
+
+@media (max-width: 560px) {
+  .sisu {
+    max-width: 94%;
+  }
+
+  .sonum {
+    max-width: 100%;
+  }
 }

@@ -146,6 +146,7 @@ app.post("/api/chat", async (req, res) => {
       ruuteriPohjus: v.ruuteriPohjus,
       allikad: v.allikad,
       hoiatused: v.hoiatused,
+      ...(v.graafik ? { graafik: v.graafik } : {}),
       malu: kontekst
         ? {
             asukoht: kontekst.viimaneAsukohaNimi,

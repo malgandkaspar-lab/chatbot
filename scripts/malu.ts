@@ -5,21 +5,24 @@ import { vasta } from "../src/pipeline.js";
 
 const kontekst = uusKontekst();
 const voog = [
+  // Asukoha põhine küsimus - seab mällu asukoha (Rõuge vald, Pupli küla, Kädso)
   "Kas kinnistul 46801:003:0053 on raieluba?",
-  "Kas see on kaitse all?",            // asesõna -> eelmine asukoht
-  "Mis seal kasvab?",                  // asesõna -> eelmine asukoht
+  // Asesõnaline jätkuküsimus peaks kasutama eelmist asukohta
+  "Kas see on kaitse all?",
+  "Mis seal kasvab?",
+  // Uus küsimus ILMA asukohata - ei tohi vana asukohta sisse segada
+  "Palju on terves Eestis metsa?",
+  // Maakonnapõhine, siis jätkuküsimus uue maakonnaga
   "Kui palju raiuti Võrumaal?",
-  "Aga Tartumaal?",                    // jätkuküsimus, uus maakond
-  "Ja Saaremaal?",
-  "Kui hull on kooreüraskiolukord?",
-  "Aga Ida-Virumaal?",                 // jätkab kahjustused-intenti
+  "Aga Ida-Virumaal?",
 ];
 
 for (const q of voog) {
   const v = await vasta(q, { kontekst });
-  const esimene = v.tekst.split("\n")[0]!.replace(/\*\*/g, "").slice(0, 95);
-  console.log(`\n> ${q}`);
-  console.log(`  [${v.intent}] ${v.kontekstiSelgitus ? "(" + v.kontekstiSelgitus + ") " : ""}${v.kestusMs} ms`);
-  console.log(`  ${esimene}`);
+  const graafik = v.graafik
+    ? ` | graafik:${v.graafik.tyyp}/${v.graafik.sildid.length}`
+    : "";
+  console.log(
+    `> ${q}\n  [${v.intent}]${v.kontekstiSelgitus ? " " + v.kontekstiSelgitus : ""} ${v.kestusMs}ms${graafik}\n  ${(v.tekst.split("\n")[0] ?? "").replace(/\*\*/g, "").slice(0, 90)}`,
+  );
 }
-console.log(`\nmälu: asukoht=${kontekst.viimaneAsukohaNimi} maakond=${kontekst.viimaneMaakonnaNimi} kysimusi=${kontekst.kysimusi}`);

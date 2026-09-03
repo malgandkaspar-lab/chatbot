@@ -88,7 +88,7 @@ Vanu vastuseid ega arve mälus EI hoita — iga vastus arvutatakse värsketest
 andmetest. Mälu kirjutatakse ainult õnnestunud lahenduse põhjal, seega
 vigane sisend ei riku eelmist head asukohta.
 
-Seansid on mälus (`src/router/kontekst.ts`), eluiga 2 h, max 500 seanssi.
+Seansid on mälus (`src/router/kontekst.ts`), eluiga 15 min, max 500 seanssi.
 UI hoiab seansi ID-d `sessionStorage`-is; "Uus vestlus" nullib mälu.
 
 ## Käsud

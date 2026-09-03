@@ -8,11 +8,16 @@
   </head>
   <body>
     <header>
-      <h1>Metsabot</h1>
-      <p class="alapealkiri">
-        Vastused Eesti riiklikest andmeallikatest: metsaregister, EELIS,
-        Statistikaamet, Maa- ja Ruumiamet.
-      </p>
+      <div class="pais">
+        <div class="logo">🌲</div>
+        <div>
+          <h1>Metsabot</h1>
+          <p class="alapealkiri">
+            Vastused Eesti riiklikest andmeallikatest: metsaregister, EELIS,
+            Statistikaamet, Maa- ja Ruumiamet.
+          </p>
+        </div>
+      </div>
       <div id="tervis" class="tervis"></div>
     </header>
 
@@ -20,36 +25,43 @@
       <div id="vestlus" class="vestlus">
         <div class="sonum bot">
           <div class="sisu">
-            <p>Tere! Küsi midagi Eesti metsa kohta. Näiteks:</p>
+            <p>
+              Tere! Küsi midagi Eesti metsa kohta — raie, metsavaru, kaitsealad
+              või reeglid. Näiteks:
+            </p>
           </div>
           <div class="naited" id="naited"></div>
         </div>
       </div>
     </main>
 
-    <div id="maluriba" class="maluriba" hidden>
-      <span></span>
-      <button type="button" id="uus">Uus vestlus</button>
+    <div class="alumine">
+      <div id="maluriba" class="maluriba" hidden>
+        <span></span>
+        <button type="button" id="uus">Uus vestlus</button>
+      </div>
+
+      <form id="vorm" class="vorm">
+        <input
+          id="sisend"
+          type="text"
+          placeholder="Küsi metsa kohta…"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" id="saada" aria-label="Saada">➤</button>
+      </form>
+
+      <footer>
+        <p>
+          Bot ei anna juriidilist nõu. Raieload ja piirangud kinnita
+          <a href="https://register.metsad.ee" target="_blank" rel="noopener"
+            >metsaportaalist</a
+          >
+          või Keskkonnaametist.
+        </p>
+      </footer>
     </div>
-
-    <form id="vorm" class="vorm">
-      <input
-        id="sisend"
-        type="text"
-        placeholder="Kas metsa raiutakse rohkem kui juurde kasvab?"
-        autocomplete="off"
-        required
-      />
-      <button type="submit" id="saada">Küsi</button>
-    </form>
-
-    <footer>
-      <p>
-        Bot ei anna juriidilist nõu. Raieload ja piirangud kinnita
-        <a href="https://register.metsad.ee" target="_blank" rel="noopener">metsaportaalist</a>
-        või Keskkonnaametist.
-      </p>
-    </footer>
 
     <script src="app.js" type="module"></script>
   </body>

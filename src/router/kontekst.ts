@@ -41,7 +41,7 @@ export function uusKontekst(): Kontekst {
  * Seansihoidla mälus. Prototüübi jaoks piisav; tootmises käiks see
  * Redisesse või küpsisesse allkirjastatud kujul.
  */
-const SEANSI_ELUIGA_MS = 2 * 3600 * 1000;
+const SEANSI_ELUIGA_MS = 15 * 60 * 1000;
 const MAX_SEANSSE = 500;
 
 const seansid = new Map<string, Kontekst>();

@@ -24,6 +24,10 @@ import { onKatastritunnus, KATASTRITUNNUS_RE } from "./tools/wfs.js";
 import * as T from "./answer/templates.js";
 import type { Vastus } from "./answer/templates.js";
 
+export type Graafik =
+  | { tyyp: "rida"; sildid: string[]; vaartused: number[]; uhik: string }
+  | { tyyp: "tulp"; sildid: string[]; vaartused: number[]; uhik: string };
+
 export type VastusePakett = Vastus & {
   intent: string;
   ruuter: RuuteriTulemus["allikas"];
@@ -32,6 +36,8 @@ export type VastusePakett = Vastus & {
   kontekstiSelgitus?: string;
   /** Töötlemise kestus millisekundites. */
   kestusMs: number;
+  /** Väike diagramm vastuse juurde (lihtne SVG, klient joonistab). */
+  graafik?: Graafik;
 };
 
 export type VastaValikud = {
@@ -71,7 +77,10 @@ export async function vasta(
     }
   }
 
-  const { vastus, lahendatudAsukoht } = await taidaIntent(tulemus.paring, kysimus);
+  const { vastus, lahendatudAsukoht, graafik } = await taidaIntent(
+    tulemus.paring,
+    kysimus,
+  );
 
   if (kontekst) uuendaKontekst(kontekst, tulemus.paring, lahendatudAsukoht);
 
@@ -83,6 +92,7 @@ export async function vasta(
     ...(tulemus.kontekstiSelgitus
       ? { kontekstiSelgitus: tulemus.kontekstiSelgitus }
       : {}),
+    ...(graafik ? { graafik } : {}),
     kestusMs: Date.now() - algus,
   };
 }
@@ -147,11 +157,14 @@ type Tulem = {
   vastus: Vastus;
   /** Õnnestunult lahendatud asukoht, mälu uuendamiseks. */
   lahendatudAsukoht: { sisend: string; nimi: string } | null;
+  /** Diagrammi andmed, kui vastusel on numbrilist reastikku. */
+  graafik?: Graafik;
 };
 
-const ilmaAsukohta = (vastus: Vastus): Tulem => ({
+const ilmaAsukohta = (vastus: Vastus, graafik?: Graafik): Tulem => ({
   vastus,
   lahendatudAsukoht: null,
+  ...(graafik ? { graafik } : {}),
 });
 
 async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
@@ -159,14 +172,28 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
     case "raie_vs_juurdekasv":
       return ilmaAsukohta(T.raieVsJuurdekasvVastus(await raieVsJuurdekasv()));
 
-    case "metsavaru_trend":
-      return ilmaAsukohta(T.metsavaruTrendVastus(await metsavaruTrend(10)));
+    case "metsavaru_trend": {
+      const t = await metsavaruTrend(10);
+      return ilmaAsukohta(T.metsavaruTrendVastus(t), {
+        tyyp: "rida",
+        sildid: t.read.map((r) => r.aasta),
+        vaartused: t.read.map((r) => r.uldvaru),
+        uhik: "mln m³",
+      });
+    }
 
     case "metsasus":
       return ilmaAsukohta(T.metsasusVastus(await metsasus()));
 
-    case "raie_liigiti":
-      return ilmaAsukohta(T.raieLiigitiVastus(await raieLiigiti()));
+    case "raie_liigiti": {
+      const r = await raieLiigiti();
+      return ilmaAsukohta(T.raieLiigitiVastus(r), {
+        tyyp: "tulp",
+        sildid: r.liigid.map((l) => l.nimi),
+        vaartused: r.liigid.map((l) => l.osakaalPct),
+        uhik: "% raiemahust",
+      });
+    }
 
     case "raie_maakonnas":
       return ilmaAsukohta(
@@ -178,10 +205,15 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
         T.uuendamineVastus(await uuendamine(paring.maakond ?? "00")),
       );
 
-    case "kahjustused":
-      return ilmaAsukohta(
-        T.kahjustusedVastus(await kahjustused(paring.maakond ?? "00")),
-      );
+    case "kahjustused": {
+      const k = await kahjustused(paring.maakond ?? "00");
+      return ilmaAsukohta(T.kahjustusedVastus(k), {
+        tyyp: "tulp",
+        sildid: k.hukkunudPohjused.map((p) => p.nimi),
+        vaartused: k.hukkunudPohjused.map((p) => p.pindala),
+        uhik: "ha",
+      });
+    }
 
     case "teatised_asukohas": {
       const r = await lahendaAsukoht(paring.asukoht);

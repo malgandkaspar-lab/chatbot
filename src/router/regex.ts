@@ -129,12 +129,24 @@ type Reegel = {
 };
 
 /**
+ * Kas küsimus käib kogu Eesti kohta ("terves Eestis", "kogu riigis").
+ * Sellisel juhul EI tohi mälu sisse segada - vastus peab olema riigipõhine.
+ */
+const EESTI_KOIK_RE =
+  /\b(kogu\s+eesti|kogu\s+riik|kogu\s+riigi|terve(?:s)?\s+eesti|terve(?:s)?\s+riik|üle\s+(?:kogu\s+)?eesti|eesti\s+tervikuna|riigis\s+tervikuna|kogu\s+eesti\s+metsades?)\b/iu;
+function onKoguEesti(t: string): boolean {
+  return EESTI_KOIK_RE.test(t);
+}
+
+/**
  * Asukoha lahendamine koos konteksti varuvariandiga.
  *
- * Kui küsimuses on asukoht kirjas, kasutame seda. Kui küsimus viitab
- * asesõnaga ("kas see on kaitse all") ja meil on eelmine asukoht, siis
- * kasutame seda ja ÜTLEME SEDA KASUTAJALE - vastasel juhul jääks mulje,
- * et bot teadis midagi, mida kasutaja ei öelnud.
+ * Kui küsimuses on asukoht kirjas, kasutame seda. Mälu kasutame AINULT
+ * siis, kui küsimus viitab eelmisele kohale asesõnaga ("kas see on kaitse
+ * all", "mis seal kasvab") - uus küsimus ilma asukohata peab vastama
+ * riigipõhiselt, mitte mäletama vana asukohta. Kui mälust võetakse, siis
+ * ÜTLEME SEDA KASUTAJALE - vastasel juhul jääks mulje, et bot teadis
+ * midagi, mida kasutaja ei öelnud.
  */
 function asukohtVoiKontekst(
   kysimus: string,
@@ -144,7 +156,9 @@ function asukohtVoiKontekst(
   const otsene = eraldaAsukoht(kysimus);
   if (otsene) return { paring: { intent, asukoht: otsene } };
 
-  if (k?.viimaneAsukoht) {
+  if (onKoguEesti(kysimus)) return null;
+
+  if (k?.viimaneAsukoht && onAsesonaViide(kysimus)) {
     return {
       paring: { intent, asukoht: k.viimaneAsukoht },
       kontekstiSelgitus: `Kasutan eelmist asukohta: ${k.viimaneAsukohaNimi ?? k.viimaneAsukoht}`,
@@ -160,7 +174,7 @@ const REEGLID: Reegel[] = [
     nimi: "jatku_maakond",
     kui: [/./u],
     ehita: (kysimus, _t, k) => {
-      if (!k?.viimaneIntent) return null;
+      if (!k?.viimaneIntent || onKoguEesti(kysimus)) return null;
       const kood = leiaMaakond(kysimus);
       if (!onMaakonnaJatkuk(kysimus, kood) || !kood) return null;
 
@@ -233,7 +247,7 @@ const REEGLID: Reegel[] = [
   // --- Metsasus
   {
     nimi: "metsasus",
-    kui: [/(metsasus|metsa all|metsaga kaetud|kui suur osa eestist|kui palju eestis metsa|protsent(?:i)? metsa)/u],
+    kui: [/(metsasus|metsa all|metsaga kaetud|kui suur osa eestist|kui palju (?:on\s+)?eestis metsa|palju (?:on\s+)?[\wõäöüšž\-]+ eestis metsa|protsent(?:i)? metsa)/u],
     ehita: () => ({ intent: "metsasus" }),
   },
 
