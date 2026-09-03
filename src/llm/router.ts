@@ -2,6 +2,7 @@ import { chat } from "./ollama.js";
 import { ruuteriPrompt } from "./prompts.js";
 import { INTENDID, type Paring, type IntentNimi } from "../router/intents.js";
 import { leiaMaakonnaKood } from "../tools/statistika.js";
+import { envNum } from "../lib/env.js";
 
 type LlmVastus = {
   intent?: string;
@@ -19,9 +20,11 @@ function sone(v: unknown): string | null {
 /**
  * LLM-ruuteri varuvariant. Kutsutakse AINULT siis, kui regex vastet ei leidnud.
  *
- * Valideerib mudeli väljundi rangelt: tundmatu intent, puuduv kohustuslik
- * parameeter või madal kindlus -> null (jääme "tundmatu" juurde). Mudel
- * eksis testimisel juba teisel küsimusel, seega usaldust on vähe.
+ * Ruuteri otsusel on RANGE ajalimiit (LLM_ROUTER_TIMEOUT_S, vaikimisi 10 s).
+ * Põhjus: kui küsimus jääb lõpuks ikkagi tundmatuks, ei tohi kasutaja
+ * oodata ~20 s+ ainult selleks, et lõpuks "andmeid pole" kuulda. Aeglase
+ * ruuteri asemel loobume kiiresti ja vastame kiirest fallbackist.
+ * (Täisvastuse LLM-il on oma, pikem ajalimiit.)
  */
 export async function llmRuuter(kysimus: string): Promise<Paring | null> {
   const vastus = await chat(
@@ -29,7 +32,7 @@ export async function llmRuuter(kysimus: string): Promise<Paring | null> {
       { role: "system", content: ruuteriPrompt() },
       { role: "user", content: kysimus },
     ],
-    { json: true, temperature: 0, maxTokens: 200 },
+    { json: true, temperature: 0, maxTokens: 200, timeoutS: envNum("LLM_ROUTER_TIMEOUT_S", 10) },
   );
 
   let j: LlmVastus;

@@ -64,13 +64,22 @@ export async function tervisekontroll(): Promise<Tervis> {
 /** Ühekordne vastus, ilma voogedastuseta. */
 export async function chat(
   sonumid: Sonum[],
-  valikud: { json?: boolean; temperature?: number; maxTokens?: number } = {},
+  valikud: {
+    json?: boolean;
+    temperature?: number;
+    maxTokens?: number;
+    /** Mina sekundites. Vaikimisi LLM_TIMEOUT_S. */
+    timeoutS?: number;
+  } = {},
 ): Promise<string> {
   const s = seaded();
   if (!s.lubatud) throw new Error("LLM on välja lülitatud (LLM_ENABLED=false)");
 
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), s.timeoutMs);
+  const timer = setTimeout(
+    () => ctrl.abort(),
+    (valikud.timeoutS ?? s.timeoutMs / 1000) * 1000,
+  );
   try {
     const res = await fetch(`${s.url}/api/chat`, {
       method: "POST",
