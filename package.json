@@ -11,6 +11,7 @@
     "dev": "tsx watch src/server.ts",
     "start": "tsx src/server.ts",
     "smoke": "tsx scripts/smoke.ts",
+    "naited": "tsx scripts/naited.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

@@ -1,0 +1,186 @@
+{
+  "loodud": "2026-09-03T11:14:08.821Z",
+  "arv": 15,
+  "vigu": 0,
+  "kirjed": [
+    {
+      "kysimus": "Kas metsa raiutakse rohkem, kui seda juurde kasvab?",
+      "intent": "raie_vs_juurdekasv",
+      "oodatudIntent": "raie_vs_juurdekasv",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 7,
+      "allikad": [
+        "Statistikaamet, tabelid KK51 ja MM03 (statistiline metsainventeerimine, SMI)"
+      ],
+      "tekst": "**Lühivastus: sõltub sellest, mida mõõta — kaks ametlikku näitajat osutavad eri suunda.**\n\n**1. Raiemaht vs juurdekasv.** 2024. aastal raiuti Eestis 12,5 miljonit m³ puitu, millest lageraie moodustas 9,2 miljonit m³. Puistute brutojuurdekasv oli samal ajal 15,4 miljonit m³ aastas (7,2 m³ hektari kohta × 2,14 miljonit ha puistuid). Raiuti seega **81% juurdekasvust** ehk vähem kui juurde kasvas.\n\n**2. Tegelik metsavaru.** Samal ajal on puistute üldvaru 2019. aasta 484 miljonit m³ pealt langenud 2024. aastaks 461 miljonit m³-ni ehk kahanenud 4,7%.\n\n**Miks need on vastuolus?** Kui raie jääks juurdekasvust 2,9 miljonit m³ võrra alla, peaks metsavaru igal aastal kasvama. Tegelikult see kahaneb. Vahe tuleb peamiselt sellest, et brutojuurdekasv ei arvesta looduslikku suremust — tormimurdu, üraskikahjustusi ja haigusi. Osa juurdekasvust \"kaob\" seega raiumata. Lisaks on tegemist valikuuringuga: raiemahu enda veapiir on ±9,6%, mis 2024. aasta puhul tähendab ligikaudu ±1,2 miljonit m³.\n\n**Kokkuvõte.** Ainult raiemahtu ja juurdekasvu võrreldes on vastus \"ei\". Metsavaru muutust vaadates on pilt murettekitavam. Kes väidab kindlalt üht või teist, valib tavaliselt ühe näitaja ja jätab teise mainimata."
+    },
+    {
+      "kysimus": "Kuidas on Eesti metsavaru ajas muutunud?",
+      "intent": "metsavaru_trend",
+      "oodatudIntent": "metsavaru_trend",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 4,
+      "allikad": [
+        "Statistikaamet, tabel KK51 (statistiline metsainventeerimine, SMI)"
+      ],
+      "tekst": "Puistute üldvaru oli 2016. aastal 491 miljonit m³ ja 2025. aastal 462 miljonit m³ — kahanemine 5,9%.\n\nHektari kohta on varu muutunud 229 m³/ha pealt 215 m³/ha-ni. Puistute pindala on samal ajal olnud 2,14 miljonit ha → 2,15 miljonit ha, ehk püsinud üsna stabiilne. See tähendab, et kahanemine ei tule metsamaa vähenemisest, vaid puistute hõrenemisest.\n\n| Aasta | Üldvaru | Puistute pindala | m³/ha |\n|---|---|---|---|\n| 2016 | 491 miljonit m³ | 2,14 miljonit ha | 229 |\n| 2017 | 494 miljonit m³ | 2,16 miljonit ha | 229 |\n| 2018 | 487 miljonit m³ | 2,15 miljonit ha | 227 |\n| 2019 | 484 miljonit m³ | 2,14 miljonit ha | 226 |\n| 2020 | 477 miljonit m³ | 2,12 miljonit ha | 225 |\n| 2021 | 469 miljonit m³ | 2,12 miljonit ha | 222 |\n| 2022 | 462 miljonit m³ | 2,11 miljonit ha | 219 |\n| 2023 | 461 miljonit m³ | 2,12 miljonit ha | 217 |\n| 2024 | 461 miljonit m³ | 2,14 miljonit ha | 216 |\n| 2025 | 462 miljonit m³ | 2,15 miljonit ha | 215 |"
+    },
+    {
+      "kysimus": "Kui suur osa Eestist on metsa all?",
+      "intent": "metsasus",
+      "oodatudIntent": "metsasus",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 3,
+      "allikad": [
+        "Statistikaamet, tabel KK51 (statistiline metsainventeerimine, SMI)"
+      ],
+      "tekst": "2025. aastal oli Eesti metsasus **52,1%** ehk ligikaudu pool riigi pindalast on metsamaa. Metsamaa kogupindala on 2,36 miljonit ha, millest puistuid ehk puudega kaetud metsa on 2,15 miljonit ha.\n\nVõrdluseks: 1999. aastal oli metsasus 48,4%, seega on see kasvanud 3,7 protsendipunkti võrra.\n\nMetsamaa ja puistute pindala erinevus tuleb sellest, et metsamaa hulka loetakse ka raiesmikud, noorendikud ja ajutiselt puudeta alad."
+    },
+    {
+      "kysimus": "Mis osa raiest on lageraie?",
+      "intent": "raie_liigiti",
+      "oodatudIntent": "raie_liigiti",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 4,
+      "allikad": [
+        "Statistikaamet, tabel MM03 (statistiline metsainventeerimine, SMI)"
+      ],
+      "tekst": "2024. aastal oli koguraie 12,5 miljonit m³. Jaotus raieliikide vahel:\n\n| Raieliik | Raiemaht | Osa koguraiest | Raiepindala |\n|---|---|---|---|\n| uuendusraie | 9,6 miljonit m³ | 76,6% | 35,6 tuhat ha |\n| &nbsp;&nbsp;sh lageraie | 9,2 miljonit m³ | 73,8% | 34,0 tuhat ha |\n| hooldusraie | 2,6 miljonit m³ | 21,2% | 66,9 tuhat ha |\n| &nbsp;&nbsp;sh harvendusraie | 1,9 miljonit m³ | 14,9% | 25,5 tuhat ha |\n| muu raie | 282 tuhat m³ | 2,3% | 14,8 tuhat ha |\n\nMahult on lageraie selgelt ülekaalus (73,8%), kuid pindalalt katab hooldusraie rohkem maad (66,9 tuhat ha vs 34,0 tuhat ha). Hooldusraiel võetakse hektarilt vähe puitu, lageraiel kogu puistu.\n\nTabelis on \"sh\" tähistatud alaliigid, mis on juba ülemliigi sees: uuendusraie sisaldab lageraiet, hooldusraie sisaldab harvendusraiet. Ridade kokkuliitmine annaks topeltarvestuse."
+    },
+    {
+      "kysimus": "Kui palju raiuti Eestis kokku metsa 2023. aastal?",
+      "intent": "raie_kogus",
+      "oodatudIntent": "raie_kogus",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 4,
+      "allikad": [
+        "Statistikaamet, tabel MM04 (raiedokumentide alusel)"
+      ],
+      "tekst": "Eestis raiuti 2023. aastal **12,55 miljonit m³** puitu pindalalt 118 347 ha.\n\nOmandi järgi: riigimetsast 4,11 miljonit m³ (32,7%) ja erametsast 8,33 miljonit m³ (66,4%)."
+    },
+    {
+      "kysimus": "Kui palju raiuti Võrumaal 2022. aastal?",
+      "intent": "raie_maakonnas",
+      "oodatudIntent": "raie_maakonnas",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 252,
+      "allikad": [
+        "Statistikaamet, tabel MM04 (raiedokumentide alusel)"
+      ],
+      "tekst": "Võrumaal raiuti 2022. aastal **1,28 miljonit m³** puitu pindalalt 11 080 ha. See on 9,0% kogu Eesti raiemahust (14,30 miljonit m³).\n\nOmandi järgi: riigimetsast 322 306 m³ (25,1%) ja erametsast 957 769 m³ (74,7%)."
+    },
+    {
+      "kysimus": "Kui palju metsa Eestis istutatakse?",
+      "intent": "uuendamine",
+      "oodatudIntent": "uuendamine",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 7,
+      "allikad": [
+        "Statistikaamet, tabel MM10 (metsa uuendamine)",
+        "Statistikaamet, tabel MM04 (raiedokumentide alusel)"
+      ],
+      "tekst": "2025. aastal rakendati Eestis aktiivseid metsauuendamise võtteid **8 815 ha** ulatuses:\n\n- metsaistutus 7 800 ha (kuusk 4 153 ha, mänd 2 211 ha, kask 1 145 ha)\n- metsakülv 0,2 ha\n- loodusliku uuenemise kaasaaitamine 1 015 ha\n\nVõrdluseks: lageraie pindala oli samal aastal 35 749 ha (raiedokumentide alusel)."
+    },
+    {
+      "kysimus": "Kui hull on kooreüraskiolukord?",
+      "intent": "kahjustused",
+      "oodatudIntent": "kahjustused",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 8,
+      "allikad": [
+        "Statistikaamet, tabelid KK513 ja KK514"
+      ],
+      "tekst": "2025. aastal hukkus Eestis **1 758 ha** puistuid. Peamised põhjused:\n\n- Metsloomakahjustused: 528 ha (30,0%)\n- Putukakahjustused: 493 ha (28,1%)\n- Tuuleheide ja -murd: 413 ha (23,5%)\n- Metsahaigused: 268 ha (15,2%)\n- Ebasoodne veerežiim: 29,1 ha (1,7%)\n\nLisaks oli aasta lõpu seisuga kahjustatud (kuid mitte hukkunud) **2 698 ha** puistuid:\n\n- Muud põhjused: 984 ha\n- Tuuleheide ja -murd: 782 ha\n- Ulukite tekitatud mehaanilised kahjustused: 743 ha\n- Juuremädanikud: 128 ha\n- Ebasoodne veerežiim: 34,4 ha\n\nPutukakahjustused (peamiselt kuuse-kooreürask) olid 2025. aastal hukkumise suurim üksikpõhjus — 493 ha."
+    },
+    {
+      "kysimus": "Kas kinnistul 46801:003:0053 on raieluba?",
+      "intent": "teatised_asukohas",
+      "oodatudIntent": "teatised_asukohas",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 485,
+      "allikad": [
+        "Metsaregister (Kliimaministeeriumi GeoServer, metsaregistri WFS-teenus)"
+      ],
+      "tekst": "Võru maakond, Rõuge vald, Pupli küla, Kädso (kataster 46801:003:0053) on metsaregistris **23 registreeritud metsateatist**. Kokku 18,5 ha ja 4 387 m³ kavandatud raiemahtu, neist kehtivaid 23.\n\nRaieliikide kaupa sellel katastriüksusel:\n- lageraie: 16 teatist, 13,2 ha, 3 647 m³\n- aegjärkne raie: 4 teatist, 2,6 ha, 520 m³\n- harvendusraie: 3 teatist, 2,7 ha, 220 m³\n\n| Teatis | Eraldis | Raieliik | Pindala | Maht | Kehtib kuni |\n|---|---|---|---|---|---|\n| 50001221585 | 23 | lageraie | 1,6 ha | 522 m³ | 16.06.2028 |\n| 50001221587 | 26 | lageraie | 1,0 ha | 342 m³ | 16.06.2028 |\n| 50001221588 | 28 | lageraie | 0,2 ha | 21 m³ | 16.06.2028 |\n| 50001221583 | 21 | lageraie | 0,4 ha | 197 m³ | 16.06.2028 |\n| 50001221589 | 29 | lageraie | 0,2 ha | 50 m³ | 16.06.2028 |\n\nNäitan 5 teatist 23-st."
+    },
+    {
+      "kysimus": "Mis metsa kasvab katastriüksusel 46801:003:0053?",
+      "intent": "eraldise_info",
+      "oodatudIntent": "eraldise_info",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 3469,
+      "allikad": [
+        "Metsaregister (Kliimaministeeriumi GeoServer, metsaregistri WFS-teenus)"
+      ],
+      "tekst": "Võru maakond, Rõuge vald, Pupli küla, Kädso (kataster 46801:003:0053) on metsaregistris **29 metsaeraldist** kogupindalaga 22,6 ha. Hinnanguline puidu tagavara on 5 162 m³. Tegemist on erametsaga.\n\nEnamuspuuliigid pindala järgi: kuusk 52,5% (11,9 ha), kask 45,6% (10,3 ha) ja hall lepp 1,9% (0,4 ha).\n\nPuistute vanus jääb vahemikku 20–95 aastat.\n\n**Raieküpsus vanuse järgi:** 17 eraldist on jõudnud registri arvutatud raievanuseni, 9 on veel nooremad, 3 puhul on vanus määramata. See on ainult vanusetingimus — lageraie võib olla lubatud ka nooremas puistus küpsusdiameetri või väikese täiuse alusel, ja keelatud looduskaitseliste piirangute tõttu.\n\n| Eraldis | Pindala | Enamuspuuliik | Vanus | Raievanus | Tagavara | Kasvukoht |\n|---|---|---|---|---|---|---|\n| 1 | 0,6 ha | kask | 65 a | 60 a | 339 m³/ha | jänesekapsa-kõdusoo kasvukohatüüp |\n| 2 | 0,2 ha | kuusk | 85 a | 69 a | 207 m³/ha | jänesekapsa kasvukohatüüp |\n| 3 | 1,4 ha | kask | 65 a | 62 a | 241 m³/ha | jänesekapsa-kõdusoo kasvukohatüüp |\n| 4 | 0,4 ha | kuusk | 34 a | 69 a | 127 m³/ha | jänesekapsa kasvukohatüüp |\n| 5 | 0,6 ha | kask | 20 a | 59 a | 121 m³/ha | jänesekapsa kasvukohatüüp |\n| 6 | 0,8 ha | kuusk | 84 a | 69 a | 177 m³/ha | jänesekapsa kasvukohatüüp |\n\nNäitan 6 eraldist 29-st."
+    },
+    {
+      "kysimus": "Kas kinnistu 46801:003:0053 jääb Natura alale?",
+      "intent": "kaitsealad_asukohas",
+      "oodatudIntent": "kaitsealad_asukohas",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 26,
+      "allikad": [
+        "EELIS (Eesti Looduse Infosüsteem), Kliimaministeeriumi WFS-teenus"
+      ],
+      "tekst": "Võru maakond, Rõuge vald, Pupli küla, Kädso (kataster 46801:003:0053) ei jää minu päringu järgi ühelegi kaitstavale loodusobjektile.\n\nLähikonnas (kuni 3,0 km) on siiski:\n- Hino maastikukaitseala (kaitseala)\n- Parmu looduskaitseala (kaitseala)\n- Pullijärve hoiuala (hoiuala)\n- Hino loodusala (Natura 2000 loodusala)\n- Pullijärve loodusala (Natura 2000 loodusala)\n- Parmu loodusala (Natura 2000 loodusala)\n\nLisaks kaitsealadele võivad metsa majandamist piirata vääriselupaigad, kaitsealuste liikide elupaigad ja püsielupaigad, mille täpsed piirid ei ole avalikud. Neid näed metsaportaalis oma kinnistu omanikuna sisse logides."
+    },
+    {
+      "kysimus": "Mis vanuses tohib männikut lageraiuda?",
+      "intent": "reeglid",
+      "oodatudIntent": "reeglid",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 8,
+      "allikad": [
+        "Metsaseadus ja metsa majandamise eeskiri (vt lõikude sisesed viited)"
+      ],
+      "tekst": "### RAIEVANUS — millal tohib lageraiet teha\n\nLageraie on lubatud, kui puistu vastab vähemalt ühele tingimusele\n(metsaseadus § 29 lg 4):\n\n1. koosseisuga kaalutud esimese rinde keskmine vanus on jõudnud\n   koosseisuga kaalutud keskmise raievanuseni;\n2. puistu on saavutanud kehtestatud keskmise rinnasdiameetri\n   (küpsusdiameetri);\n3. puistu rinnaspindala või täius on kehtestatust väiksem.\n\nSeadusega piiritletud raievanuste vahemikud (metsaseadus § 29 lg 5):\n\n| Puuliik | Raievanus |\n|---|---|\n| mänd ja kõvad lehtpuud (tamm, saar, jalakas, künnapuu, vaher) | 90–160 a |\n| kuusk | 80–120 a |\n| kask ja sanglepp | 60–80 a |\n| haab | 30–50 a |\n\nTäpsed raievanused puuliikide ja boniteediklasside kaupa kehtestab\nminister metsa majandamise eeskirjaga.\n\n**TÄHTIS — miks siin ei ole täpset tabelit.** Konkreetse eraldise raievanus\nei ole tabeli lame väärtus, vaid puistu koosseisuga KAALUTUD arv\n(metsa majandamise eeskiri § 3 lg 1 ja 1¹). Seetõttu esineb metsaregistris\nnäiteks kuusel raievanuseid 60–92 ja männil 71–120 aastat, mitte ümmargusi\ntabeliarve. Metsaregister arvutab selle igale eraldisele ise ja bot loeb\nselle välja `keskm_raievanus`. Ära asenda seda käsitsi kirjutatud tabeliga.\n\nVanusetingimuse täitmine ei ole raieluba. Raie võib olla keelatud\nlooduskaitseliste piirangute tõttu ja igal juhul on vaja registreeritud\nmetsateatist.\n\n### LAGERAIELANGI SUURUS\n\nMetsaseadus § 29 lg 11 piirab lageraielangi pindala:\n\n- luitel, uuristus- või tuulekandeohtlikul alal ning infiltratsiooni ja\n  survelise põhjaveega alal: kuni 2 ha;\n- loo ja sambliku kasvukohatüüpides: lank kuni 30 m lai ja kuni 2 ha;\n- muudes kasvukohatüüpides: kuni 3 ha; kuni 100 m laiuse langi korral\n  okaspuu- ja kõvalehtpuupuistutes kuni 5 ha ning pehmelehtpuupuistutes\n  kuni 7 ha.\n\nTurberaielank ei tohi olla suurem kui 10 ha (metsaseadus § 30).\n\nKeskkonnaamet võib metsakaitseekspertiisi alusel lubada suuremaid lanke,\nkui mets on hukkunud või halvas tervislikus seisundis (§ 29 lg 12)."
+    },
+    {
+      "kysimus": "Mis vahe on turberaiel ja lageraiel?",
+      "intent": "reeglid",
+      "oodatudIntent": "reeglid",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 2,
+      "allikad": [
+        "Metsaseadus ja metsa majandamise eeskiri (vt lõikude sisesed viited)"
+      ],
+      "tekst": "### RAIELIIGID\n\nMetsateatisel kasutatavad koodid.\nAllikas: keskkonnaministri 11.08.2017 määrus nr 28 lisa \"Metsateatise vorm\";\nKKM määrus nr 63 lisa 17 \"Metsa majandamise võtete klassifikaatorid\".\n\n| Kood | Raieliik | Rühm |\n|---|---|---|\n| LR | lageraie | uuendusraie |\n| AR | aegjärkne raie | uuendusraie (turberaie) |\n| HL | häilraie | uuendusraie (turberaie) |\n| VE | veerraie | uuendusraie (turberaie) |\n| HR | harvendusraie | hooldusraie |\n| SR | sanitaarraie | hooldusraie |\n| VR | valikraie | hooldusraie |\n| TR | trassiraie | muu |\n| RD | raadamine | muu |\n| KR | kujundusraie | muu |\n\nTurberaie on aegjärkse raie, häilraie ja veerraie ühisnimetus. Turberaie\nkorral uuendatakse metsa järkude kaupa, mitte korraga.\n\nTähelepanu koodidega: **TR on trassiraie, mitte turberaie. VR on valikraie,\nmitte valgustusraie.**\n\n### LAGERAIELANGI SUURUS\n\nMetsaseadus § 29 lg 11 piirab lageraielangi pindala:\n\n- luitel, uuristus- või tuulekandeohtlikul alal ning infiltratsiooni ja\n  survelise põhjaveega alal: kuni 2 ha;\n- loo ja sambliku kasvukohatüüpides: lank kuni 30 m lai ja kuni 2 ha;\n- muudes kasvukohatüüpides: kuni 3 ha; kuni 100 m laiuse langi korral\n  okaspuu- ja kõvalehtpuupuistutes kuni 5 ha ning pehmelehtpuupuistutes\n  kuni 7 ha.\n\nTurberaielank ei tohi olla suurem kui 10 ha (metsaseadus § 30).\n\nKeskkonnaamet võib metsakaitseekspertiisi alusel lubada suuremaid lanke,\nkui mets on hukkunud või halvas tervislikus seisundis (§ 29 lg 12)."
+    },
+    {
+      "kysimus": "Kui kaua metsateatis kehtib?",
+      "intent": "reeglid",
+      "oodatudIntent": "reeglid",
+      "tabavus": "OK",
+      "ruuter": "regex",
+      "kestusMs": 2,
+      "allikad": [
+        "Metsaseadus ja metsa majandamise eeskiri (vt lõikude sisesed viited)"
+      ],
+      "tekst": "### METSATEATIS\n\nAllikas: metsaseadus § 41; keskkonnaministri määrus nr 28;\nKeskkonnaameti metsateatise leht ja riigilõivu leht.\n\n- Metsateatis on dokument, mille metsaomanik esitab Keskkonnaametile\n  kavandatavate raietööde või oluliste metsakahjustuste kohta.\n- Keskkonnaamet kontrollib teatist **15 tööpäeva** jooksul. Kui otsus nõuab\n  kooskõlastamist või metsakaitseekspertiisi, kuni **30 tööpäeva**.\n- Registreeritud teatis kehtib **2 aastat** (24 kuud).\n- Raietöödega võib alustada **10 päeva möödumisel** raiet lubava otsuse\n  registreerimisest; registreerimise päeva ei arvestata.\n- Riigilõiv **30 eurot** uuendusraie (lageraie, aegjärkne, häilraie,\n  veerraie) ja raadamise teatiselt, alates 01.07.2024. Harvendusraie,\n  sanitaarraie, valikraie, trassiraie ja kujundusraie teatiselt lõivu ei ole.\n- Iga kavandatud raie saab eraldi teatise numbri ja eraldi otsuse.\n- Samale alale esitatud uus teatis muudab varasema kehtetuks.\n- Teatist saab esitada metsaportaalis register.metsad.ee, digiallkirjastatud\n  e-kirjaga aadressil info@keskkonnaamet.ee, paberil või postiga.\n\n**Andmehoiatus:** metsaregistri avalik `teatis` kiht sisaldab ainult lubava\notsuse saanud teatisi (otsus = JAH). Keeldumisi seal ei ole, seega nende\nandmete põhjal ei saa öelda, kui palju teatisi tagasi lükati. Registreeritud\nteatis on RAIELUBA, mitte tehtud raie — osa lubasid jääb kasutamata ja\ntegelike raietööde kohta metsaregistris andmeid ei ole.\n\n### METSA UUENDAMISE KOHUSTUS\n\nAllikas: metsaseadus § 24–25; Keskkonnaameti metsauuenduse juhis.\n\n- Uuendamise võtteid tuleb rakendada vähemalt 0,5 ha suurustel raiesmikel\n  või hukkunud metsaosadel **kahe aasta jooksul** raiest või hukkumisest\n  (§ 25 lg 1).\n- Mets peab olema **uuenenud hiljemalt viie aasta** jooksul pärast raiet.\n  Loo, siirdesoo, madalsoo, raba, osja, tarna ja lodu kasvukohatüüpides on\n  tähtaeg **kümme aastat** (§ 24 lg 3).\n- Uuendamise võtted on maapinna ettevalmistamine, puuseemnete külv,\n  puude istutamine, metsakultuuri hooldamine ja loodusliku uuenduse\n  tekke soodustamine muul viisil (§ 24 lg 2).\n\nMets loetakse uuenenuks, kui hektaril kasvab ühtlaselt vähemalt:\n\n- 1500 harilikku mändi kõrgusega ≥ 0,5 m, või\n- 1000 harilikku kuuske kõrgusega ≥ 0,5 m, või\n- 1500 harilikku tamme kõrgusega ≥ 0,5 m, või\n- 1500 muud arvessevõetavat puuliiki kõrgusega ≥ 1,0 m.\n\nMitme puuliigi korral liidetakse iga liigi suhe nõutavasse arvu; kui summa\non ≥ 1, loetakse ala uuenenuks.\n\n**Oluline tõlgendushoiatus.** Statistikaameti tabel MM10 loendab ainult\nAKTIIVSET uuendamist (istutus, külv, loodusliku uuenemise kaasaaitamine).\nSuur osa raiesmikke uueneb looduslikult ja neid MM10 ei loenda. Seetõttu ei\ntohi MM10 arvu jagada lageraie pindalaga ega järeldada, et ülejäänud\nraiesmikud jäävad uuenemata."
+    },
+    {
+      "kysimus": "Mis ilm täna on?",
+      "intent": "tundmatu",
+      "oodatudIntent": "tundmatu",
+      "tabavus": "OK",
+      "ruuter": "puudub",
+      "kestusMs": 0,
+      "allikad": [],
+      "tekst": "Ma ei saanud aru, mida sa täpsemalt teada tahad.\n\nOskan vastata näiteks järgmistele küsimustele:\n- Kas metsa raiutakse rohkem kui juurde kasvab?\n- Kui suur osa Eestist on metsa all?\n- Kui palju raiuti Võrumaal?\n- Kas kinnistul 46801:003:0053 on raieluba?\n- Mis metsa kasvab katastriüksusel 46801:003:0053?\n- Kas see kinnistu jääb kaitsealale?\n- Mis vanuses tohib männikut lageraiuda?\n- Kas kevadel tohib metsa raiuda?\n\nKui küsisid konkreetse metsa kohta, lisa palun katastritunnus (kujul 12345:001:0001) või aadress."
+    }
+  ]
+}
