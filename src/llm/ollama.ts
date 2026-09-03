@@ -16,7 +16,7 @@ function seaded() {
     lubatud: envBool("LLM_ENABLED", true),
     url: envStr("OLLAMA_URL", "http://localhost:11434").replace(/\/+$/, ""),
     mudel: envStr("OLLAMA_MODEL", "qwen3:8b"),
-    timeoutMs: envNum("LLM_TIMEOUT_S", 120) * 1000,
+    timeoutMs: envNum("LLM_TIMEOUT_S", 1) * 1000,
   };
 }
 
