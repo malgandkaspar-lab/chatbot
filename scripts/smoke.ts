@@ -36,6 +36,7 @@ import {
   mkeAlal,
 } from "../src/tools/metsaregister.js";
 import { kaitseStaatus } from "../src/tools/eelis.js";
+import { ilmaPrognoos, ilmaVaatlused, ilmAsukohaJaoks } from "../src/tools/ilm.js";
 import { otsiTeadmus, koikLoigud } from "../src/tools/teadmus.js";
 import { wfsFeatures, wfsCount, cqlIntersectsPoint } from "../src/tools/wfs.js";
 import { bboxAround } from "../src/lib/geo.js";
@@ -376,11 +377,39 @@ test("raievanus_registrist", async () => {
   }
 });
 
+test("ilm", async () => {
+  const p = await ilmaPrognoos();
+  if (p.kuupaevad.length === 0)
+    throw new Error("prognoosipäevi ei leitud");
+  console.log(`  prognoosipäevi:      ${p.kuupaevad.length}`);
+  const esimene = p.kuupaevad[0]!;
+  console.log(
+    `  esimene päev:        ${esimene.kuupaev} | päev: ${esimene.päev?.nimi ?? "-"} ${esimene.päev?.tempmin ?? "?"}-${esimene.päev?.tempmax ?? "?"} °C`,
+  );
+  console.log(`  linnaprognoose:      ${Object.keys(p.linnad).join(", ") || "(puuduvad)"}`);
+  if (Object.keys(p.linnad).length === 0)
+    throw new Error("linnade prognoose ei leitud");
+
+  const v = await ilmaVaatlused();
+  console.log(`  vaatlusjaamu:        ${v.length}`);
+  if (v.length < 10) throw new Error("liiga vähe jaamu");
+  const esimeneV = v.find((x) => x.temperatuur !== null);
+  if (esimeneV)
+    console.log(`  nt ${esimeneV.jaam}: ${num(esimeneV.temperatuur as number)} °C`);
+
+  const tartu = await ilmAsukohaJaoks("Tartu");
+  const tallinn = await ilmAsukohaJaoks("Tallinn");
+  const leitud = ["Tartu", "Tallinn"].filter(
+    (k) => tartu.vaatlus?.jaam.includes(k) || tallinn.vaatlus?.jaam.includes(k),
+  );
+  console.log(`  linnaotsing:         Tartu -> ${tartu.vaatlus?.jaam ?? "-"}${tartu.vaatlus?.temperatuur != null ? " " + tartu.vaatlus.temperatuur + "°C" : ""}, Tallinn -> ${tallinn.vaatlus?.jaam ?? "-"}${tallinn.vaatlus?.temperatuur != null ? " " + tallinn.vaatlus.temperatuur + "°C" : ""}`);
+  if (leitud.length === 0) throw new Error("linnavaatlusi ei leitud");
+});
+
 // ---------------------------------------------------------------------------
 
 let ok = 0;
 let fail = 0;
-
 for (const t of tests) {
   if (filter && !t.nimi.toLowerCase().includes(filter)) continue;
   console.log(`\n=== ${t.nimi}`);

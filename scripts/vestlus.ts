@@ -23,12 +23,15 @@ const KOMPLEKT: [string, string][] = [
   ["Kas metsandus on Eestis jätkusuutlik?", "raie_vs_juurdekasv"],
 
   // metsavaru
-  ["Kas Eesti metsavaru kahaneb?", "metsavaru_trend"],
-  ["Kuidas on metsatagavara ajas muutunud?", "metsavaru_trend"],
+  ["Kui palju muutub Eesti metsavaru?", "metsavaru_trend"],
+  ["Kas Eesti puiduvaru suureneb või väheneb?", "metsavaru_trend"],
 
   // metsasus
   ["Kui suur osa Eestist on metsa all?", "metsasus"],
   ["Mis on Eesti metsasus?", "metsasus"],
+  ["Kui metsane on Eesti?", "metsasus"],
+  ["Kui suur osa Eestist on metsaga kaetud?", "metsasus"],
+  ["Mis on metsamaa osakaal Eestis?", "metsasus"],
 
   // raie liigiti
   ["Kui palju on lageraiet võrreldes harvendusraiega?", "raie_liigiti"],
@@ -50,6 +53,8 @@ const KOMPLEKT: [string, string][] = [
   // uuendamine
   ["Kui palju metsa istutatakse?", "uuendamine"],
   ["Kas raiesmikke uuendatakse?", "uuendamine"],
+  ["Kas raiesmikke taasmetsastatakse?", "uuendamine"],
+  ["Palju istikuid istutatakse?", "uuendamine"],
 
   // kahjustused
   ["Kui hull on kooreüraskiolukord?", "kahjustused"],
@@ -76,6 +81,8 @@ const KOMPLEKT: [string, string][] = [
   ["Kui kaua metsateatis kehtib?", "reeglid"],
   ["Mis vahe on turberaiel ja lageraiel?", "reeglid"],
   ["Kui palju säilikpuid tuleb alles jätta?", "reeglid"],
+  ["Mis on metsaseaduse kohased raievanused?", "reeglid"],
+  ["Mitu aastat pean raiesmiku uuendama?", "reeglid"],
 
   // ilm
   ["Mis ilm täna on?", "ilm"],

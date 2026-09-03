@@ -284,7 +284,7 @@ const REEGLID: Reegel[] = [
   // --- Mis metsa kasvab
   {
     nimi: "eraldise_info",
-    kui: [/\b(mis\s+(?:\S+\s+){0,2}kasvab|milline mets|kui vana|vanus|puuliigi?d?|koosseis|tagavara|palju puitu|raieküps|küps)/u],
+    kui: [/\b(mis\s+(?:\S+\s+){0,2}kasvab|milline mets|milline puistu|puistu|kui vana|vanus|puuliigi?d?|puiduliigid|koosseis|tagavara|palju puitu|raieküps|küps|metsatüüp|metsa tüüp|metsatüübid)/u],
     ehita: (kysimus, t, k) => {
       if (!onAsukohaKysimus(t) && !k?.viimaneAsukoht) return null;
       return asukohtVoiKontekst(kysimus, "eraldise_info", k);
@@ -313,7 +313,7 @@ const REEGLID: Reegel[] = [
   // --- Metsasus
   {
     nimi: "metsasus",
-    kui: [/(metsasus|metsa all|metsaga kaetud|kui suur osa eestist|kui palju (?:on\s+)?eestis metsa|palju (?:on\s+)?(?:terves|kogu|kokku)\s+eestis metsa|protsent(?:i)? metsa)/u],
+    kui: [/(metsasus|metsa all|metsaga kaetud|metsaga kaetus|kui suur osa eestist|kui suur osa eestis on metsa|palju on eestis metsa|kui metsane|metsamaa|metsa osakaal|kui suur osa (?:on\s+)?metsaga|kui palju (?:on\s+)?eestis metsa|palju (?:on\s+)?(?:terves|kogu|kokku)\s+eestis metsa|protsent(?:i)? metsa)/u],
     // Raieverb tähendab, et küsitakse raiemahtu, mitte metsaga kaetud pindala.
     // Ilma selleta haaraks "palju RAIUTI eestis metsa" ekslikult metsasuse.
     valjaArvatud: [/(raiu|raie|raiuti|raiutakse|langeta)/u],
@@ -325,8 +325,8 @@ const REEGLID: Reegel[] = [
     nimi: "metsavaru_trend",
     kui: [
       // "metsatagavara" ja "metsavaru" ei alga sonapiiriga tuve ees
-      /(metsavaru|tagavara|üldvaru|puidu ?varu|metsa ?varu)/u,
-      /(kahane|vähene|vähemaks|muutu|trend|kasva|suurene|ajas|aastate)/u,
+      /(metsavaru|tagavara|üldvaru|puidu ?varu|metsa ?varu|\bvaru\b|metsa hulk|metsa kogus)/u,
+      /(kahane|vähene|vähemaks|muutu|trend|kasva|suurene|ajas|aastate|kui palju muutub|suureneb või väheneb)/u,
     ],
     ehita: () => ({ intent: "metsavaru_trend" }),
   },
@@ -357,7 +357,7 @@ const REEGLID: Reegel[] = [
   // --- Uuendamine
   {
     nimi: "uuendamine",
-    kui: [/\b(uuenda|uuenemi|uuendus|istuta|istutus|külv|raiesmik|taimed|metsakultuur)/u],
+    kui: [/\b(uuenda|uuenemi|uuendus|istuta|istutus|külv|raiesmik|taimed|istikud|metsakultuur|taasmetsasta|kultiveeri|noorendik|istik)/u],
     valjaArvatud: [/\b(kohustus|tähtaeg|pean|nõue|mitu aastat|seadus)/u],
     ehita: (k) => {
       const kood = leiaMaakond(k);
@@ -415,7 +415,7 @@ const REEGLID: Reegel[] = [
   {
     nimi: "reeglid",
     kui: [
-      /(tohib|tohi\b|lubatud|keelatud|kohustus|nõue|seadus|reegel|millal|mis vanuses|kui suur (?:tohib|võib)|langi|lank|pesitse|kevadel|säilikpu|seemnepu|riigilõiv|metsateatis|mis on|mis vahe|kaua kehtib|tähtaeg|alles jät|jätma)/u,
+      /(tohib|tohi\b|lubatud|keelatud|kohustus|nõue|nõuded|seadus|metsaseadus|reegel|millal|mis vanuses|raievanus|kui suur (?:tohib|võib)|langi|lank|pesitse|kevadel|säilikpu|seemnepu|riigilõiv|metsateatis|mis on|mis vahe|kaua kehtib|tähtaeg|alles jät|jätma|failimine|mitu aastat|kui tihti|mitu kuud)/u,
     ],
     ehita: (k) => ({ intent: "reeglid", kysimus: k }),
   },
