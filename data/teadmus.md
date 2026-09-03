@@ -167,12 +167,17 @@ Suur osa raiesmikke uueneb looduslikult ja neid MM10 ei loenda. Seetõttu ei
 tohi MM10 arvu jagada lageraie pindalaga ega järeldada, et ülejäänud
 raiesmikud jäävad uuenemata.
 
-## PESITSUSRAHU
-<!-- märksõnad: pesitsusrahu, pesitsemine, linnud, linnupesa, kevad, kevadel, suvi, aprill, mai, juuni, juuli, raierahu, häirimine, keeld, hooaeg, aastaaeg, millal ei tohi -->
+## PESITSUSRAHU JA AASTAAJA
+<!-- märksõnad: pesitsusrahu, pesitsemine, linnud, linnupesa, kevad, kevadel, suvi, suvel, sügis, sügisel, talv, talvel, aprill, mai, juuni, juuli, raierahu, häirimine, keeld, hooaeg, aastaaeg, millal ei tohi, tohib suvel, tohib talvel, tohib sügisel, kõigil aastaaegadel -->
 
-Allikas: Keskkonnaameti pesitsusrahu leht; looduskaitseseadus § 55 lg 6¹
-p 1–2; Keskkonnaameti juhend "Pesitsusrahust kinnipidamise kontrollimine"
-(13.05.2025); Riigikohtu otsus 19.01.2026 asjas nr 3-21-1266.
+**Eestis EI OLE üldist kalendripõhist raiekeeldu — metsa võib raiuda põhimõtteliselt**
+**kõigil aastaaegadel (kevadel, suvel, sügisel, talvel).** Ainus aastaajaline piirang
+puudutab kevadist pesitsusrahu: 15. aprillist 15. juulini loetakse raiet linnurohkes
+metsas seaduserikkumiseks ja see võidakse peatada. Suve-, sügis- ja talvise raie
+osas sellist üldist keeldu ei ole.
+Allikas: Keskkonnaameti pesitsusrahu leht; looduskaitseseadus § 55 lg 6¹ p 1–2;
+Keskkonnaameti juhend "Pesitsusrahust kinnipidamise kontrollimine" (13.05.2025);
+Riigikohtu otsus 19.01.2026 asjas nr 3-21-1266.
 
 - Looduskaitseseadus keelab lindude pesade ja munade tahtliku hävitamise
   ning lindude tahtliku häirimise, eriti pesitsemise ja poegade
@@ -194,6 +199,8 @@ p 1–2; Keskkonnaameti juhend "Pesitsusrahust kinnipidamise kontrollimine"
 Pesitsusrahu tuleneb häirimise keelust, mitte tähtajalisest raiekeelust.
 Ära ütle "raie on 15. aprillist 15. juulini keelatud" — õige on, et sel ajal
 loetakse raiet linnurohkes metsas seaduserikkumiseks ja see võidakse peatada.
+Sama kehtib pöördvõrdi: suvel, sügisel ja talvel ei ole üldist raiekeeldu,
+raie toimub siis samadel tingimustel nagu muul ajal.
 
 ## METSATEATIS
 <!-- märksõnad: metsateatis, teatis, luba, raieluba, kehtivus, riigilõiv, menetlus, keskkonnaamet, esitamine, otsus, tööpäeva, register -->
