@@ -81,7 +81,6 @@ app.post("/api/chat", async (req, res) => {
 
     // LLM-ruuter antakse kaasa ainult siis, kui see on lubatud. Pipeline
     // kutsub seda ainult juhul, kui regex vastet ei leidis.
-    let llmKasutatud = false;
     const ruuter = llmLubatud()
       ? async (k: string) => {
           llmKasutatud = true;
