@@ -99,46 +99,7 @@ app.post("/api/chat", async (req, res) => {
       saada("kontekst", { sonum: v.kontekstiSelgitus });
     }
 
-    // Tundmatu intent + LLM olemas -> laseme mudelil ausalt vastata
-    if (v.intent === "tundmatu" && llmLubatud()) {
-      const tervis = await tervisekontroll();
-      if (tervis.saadaval) {
-        saada("staatus", { sonum: "Sõnastan vastust…" });
-        let midagiTuli = false;
-        try {
-          await chatStream(
-            [
-              { role: "system", content: VASTAJA_PROMPT },
-              {
-                role: "user",
-                content: `FAKTID:\n(andmed puuduvad — ma ei leidnud sellele küsimusele sobivat andmeallikat)\n\nKÜSIMUS: ${kysimus}`,
-              },
-            ],
-            (tykk) => {
-              midagiTuli = true;
-              saada("tykk", { tekst: tykk });
-            },
-            { temperature: 0.2, maxTokens: 400 },
-          );
-        } catch {
-          // LLM ebaõnnestus - langeme šabloonvastusele
-        }
-        if (midagiTuli) {
-          saada("lopp", {
-            intent: v.intent,
-            ruuter: llmKasutatud ? "llm" : v.ruuter,
-            allikad: [],
-            hoiatused: [
-              "See vastus on genereeritud keelemudeliga ilma andmeallikat kasutamata. " +
-                "Kontrolli fakte keskkonnaportaal.ee või register.metsad.ee kaudu.",
-            ],
-            kestusMs: Date.now() - algus,
-          });
-          return res.end();
-        }
-      }
-    }
-
+   
     saada("vastus", { tekst: v.tekst });
     saada("lopp", {
       intent: v.intent,
