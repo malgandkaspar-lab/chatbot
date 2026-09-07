@@ -86,7 +86,7 @@ app.post("/api/chat", async (req, res) => {
       ? async (k: string) => {
           llmKasutatud = true;
           saada("staatus", {
-            sonum: "Küsimus ei sobitunud tuntud mustriga, mõtlen (võib võtta kuni minuti)…",
+            sonum: "Küsimus ei sobitunud tuntud mustriga, mõtlen",
           });
           return llmRuuter(k);
         }
