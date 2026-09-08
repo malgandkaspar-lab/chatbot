@@ -284,7 +284,7 @@ const REEGLID: Reegel[] = [
   // --- Mis metsa kasvab
   {
     nimi: "eraldise_info",
-    kui: [/\b(mis\s+(?:\S+\s+){0,2}kasvab|milline mets|milline puistu|puistu|kui vana|vanus|puuliigi?d?|puiduliigid|koosseis|tagavara|palju puitu|raieküps|küps|metsatüüp|metsa tüüp|metsatüübid)/u],
+    kui: [/\b(mis\s+(?:\S+\s+){0,2}kasvab|milline mets|milline puistu|puistu|kui vana on|vanus|puuliigi?d?|puiduliigid|koosseis|tagavara|palju puitu|raieküps|küps|metsatüüp|metsa tüüp|metsatüübid|eraldis\w*)\b/u],
     ehita: (kysimus, t, k) => {
       if (!onAsukohaKysimus(t) && !k?.viimaneAsukoht) return null;
       return asukohtVoiKontekst(kysimus, "eraldise_info", k);
@@ -317,7 +317,10 @@ const REEGLID: Reegel[] = [
     // Raieverb tähendab, et küsitakse raiemahtu, mitte metsaga kaetud pindala.
     // Ilma selleta haaraks "palju RAIUTI eestis metsa" ekslikult metsasuse.
     valjaArvatud: [/(raiu|raie|raiuti|raiutakse|langeta)/u],
-    ehita: () => ({ intent: "metsasus" }),
+    ehita: (kysimus) => {
+      const kood = leiaMaakond(kysimus);
+      return kood ? { intent: "metsasus", maakond: kood } : { intent: "metsasus" };
+    },
   },
 
   // --- Metsavaru trend
@@ -336,7 +339,7 @@ const REEGLID: Reegel[] = [
     nimi: "raie_liigiti",
     kui: [/\b(lageraie|harvendusraie|turberaie|raieliik|raieliigi)/u],
     valjaArvatud: [
-      /\b(tohib|lubatud|vanus|kui suur|lank|langi|millal|kevadel|pesitse|vahe on|mis on)/u,
+      /\b(tohib|tohin|tohid|lubatud|vanus|kui suur|lank|langi|millal|kevadel|pesitse|vahe on|mis on|vana|peab)/u,
     ],
     ehita: () => ({ intent: "raie_liigiti" }),
   },
@@ -392,10 +395,10 @@ const REEGLID: Reegel[] = [
   {
     nimi: "ilm",
     kui: [
-      /\b(ilm|ilma|ilmastik|saab|sajab|sajus|sademe|vihma|lund|lumesaj|tuul|tuult|äike|torm(i|is)?\b|sooja|külm|temperatuur|temperatur|kraadi?|gradus|lumi maha|tuleoh|tuleoht|pilvi|pilves|udu|külma|päike|päikseline)\b/u,
+      /\b(ilm|ilma|ilmast|ilmastik|ilmastikust|saab|sajab|sajus|sademe|vihma|lund|lumesaj|tuul|tuult|äike|torm(i|is)?\b|sooja|külm|temperatuur|temperatur|kraadi?|gradus|lumi maha|tuleoh|tuleoht|pilvi|pilves|udu|külma|päike|päikseline)\b/u,
     ],
     // Ära aja segi metsa "tormikahjustused" kui metsaprodukti küsimusega
-    valjaArvatud: [/(tormimurd|tuuleheide|tormikahjustus|tormi\s+murd)/u],
+    valjaArvatud: [/(tormimurd|tuuleheide|tormikahjustus|tormi\s+murd|loojub|loojangu|tõuseb|päikesetõus|päikeseloojang)/u],
     ehita: (k, t) => {
       const homne = /\b(homme|järgmine päev|pärasthomme)\b/u.test(t);
       const ainultSademed =
@@ -415,7 +418,7 @@ const REEGLID: Reegel[] = [
   {
     nimi: "reeglid",
     kui: [
-      /(tohib|tohi\b|lubatud|keelatud|kohustus|nõue|nõuded|seadus|metsaseadus|reegel|millal|mis vanuses|raievanus|kui suur (?:tohib|võib)|langi|lank|pesitse|kevadel|säilikpu|seemnepu|riigilõiv|metsateatis|mis on|mis vahe|kaua kehtib|tähtaeg|alles jät|jätma|failimine|mitu aastat|kui tihti|mitu kuud)/u,
+      /(tohib|tohin|tohid|tohi\b|lubatud|keelatud|kohustus|nõue|nõuded|seadus|metsaseadus|reegel|millal|mis vanuses|raievanus|kui suur (?:tohib|võib)|kui vana(?:s)? (?:peab|tohib|tohin|võib|enne)|langi|lank|pesitse|kevadel|säilikpu|seemnepu|riigilõiv|metsateatis|mis on|mis vahe|kaua kehtib|tähtaeg|alles jät|jätma|failimine|mitu aastat|kui tihti|mitu kuud)/u,
     ],
     ehita: (k) => ({ intent: "reeglid", kysimus: k }),
   },

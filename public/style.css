@@ -2,6 +2,7 @@
   --roheline: #2d6a4f;
   --roheline-tume: #1e4d39;
   --roheline-hele: #e6f4ec;
+  --roheline-nork: #b9d8c6;
   --hall: #f5f6f4;
   --tekst: #1b1b1b;
   --nork: #6b7280;
@@ -245,6 +246,29 @@ main {
   border-radius: 8px;
   padding: 0.45rem 0.6rem;
   margin-top: 0.5rem;
+}
+
+.jatkuk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+}
+
+.chip {
+  background: var(--roheline-hele);
+  color: var(--roheline);
+  border: 1px solid var(--roheline-nork);
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chip:hover {
+  background: var(--roheline);
+  color: #fff;
 }
 
 .sonum.viga .sisu {

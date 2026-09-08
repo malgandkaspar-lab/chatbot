@@ -29,7 +29,7 @@ export type IntentNimi = (typeof INTENDID)[number];
 export type Paring =
   | { intent: "raie_vs_juurdekasv" }
   | { intent: "metsavaru_trend" }
-  | { intent: "metsasus" }
+  | { intent: "metsasus"; maakond?: string }
   | { intent: "raie_liigiti" }
   | { intent: "raie_kogus"; aasta?: string }
   | { intent: "raie_maakonnas"; maakond: string; aasta?: string }

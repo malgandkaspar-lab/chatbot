@@ -32,6 +32,8 @@ const KOMPLEKT: [string, string][] = [
   ["Kui metsane on Eesti?", "metsasus"],
   ["Kui suur osa Eestist on metsaga kaetud?", "metsasus"],
   ["Mis on metsamaa osakaal Eestis?", "metsasus"],
+  // Maakonna kohta on vastus aus: riigi näit + märkus, et maakonna kaupa pole
+  ["Kui suur osa Saaremaast on metsaga kaetud?", "metsasus"],
 
   // raie liigiti
   ["Kui palju on lageraiet võrreldes harvendusraiega?", "raie_liigiti"],
@@ -68,6 +70,7 @@ const KOMPLEKT: [string, string][] = [
   // eraldise info
   ["Mis metsa kasvab katastriüksusel 46801:003:0053?", "eraldise_info"],
   ["Kui vana on mets kinnistul 46801:003:0053?", "eraldise_info"],
+  ["Mitu eraldist on katastriüksusel 46801:003:0053?", "eraldise_info"],
 
   // kaitsealad
   ["Kas kinnistu 46801:003:0053 on kaitse all?", "kaitsealad_asukohas"],
@@ -83,6 +86,9 @@ const KOMPLEKT: [string, string][] = [
   ["Kui palju säilikpuid tuleb alles jätta?", "reeglid"],
   ["Mis on metsaseaduse kohased raievanused?", "reeglid"],
   ["Mitu aastat pean raiesmiku uuendama?", "reeglid"],
+  // "tohin" (mitte "tohib") ei tohi minna raie_liigiti alla
+  ["Mul on kolm hektarit metsa, kas tohin lageraie teha?", "reeglid"],
+  ["Kui vana peab mets olema enne raiet?", "reeglid"],
 
   // ilm
   ["Mis ilm täna on?", "ilm"],
@@ -93,10 +99,14 @@ const KOMPLEKT: [string, string][] = [
   ["Kas Tallinnas sajab?", "ilm"],
   ["Mis ilm Pärnus on?", "ilm"],
   ["Milline ilm on Rakveres?", "ilm"],
+  ["Räägi mulle ilmast", "ilm"],
+  ["Kuidas on ilm Tallinna lähistel?", "ilm"],
 
   // tundmatu
   ["Kui kaua elab kilpkonn?", "tundmatu"],
   ["Tere!", "tundmatu"],
+  // päikese tõusu/loojangu aega meil pole - aus vastus on "ei oska"
+  ["Mis kell päike loojub?", "tundmatu"],
 ];
 
 let ok = 0;

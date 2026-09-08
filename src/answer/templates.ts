@@ -44,17 +44,21 @@ export type Vastus = {
   allikad: string[];
   /** Metoodilised hoiatused, mida kasutajale näidatakse. */
   hoiatused: string[];
+  /** Järelküsimused, mida pakkuda kasutajale vastuse all nuppudena. */
+  jatkukysimused: string[];
 };
 
 function kokku(
   loigud: (string | null | undefined)[],
   allikad: string[],
   hoiatused: string[] = [],
+  jatkukysimused: string[] = [],
 ): Vastus {
   return {
     tekst: loigud.filter(Boolean).join("\n\n"),
     allikad,
     hoiatused,
+    jatkukysimused,
   };
 }
 
@@ -117,6 +121,11 @@ export function raieVsJuurdekasvVastus(b: RaieBilanss): Vastus {
         "mis on valikuuring. Raiedokumentide alusel arvutatud raiemaht on " +
         "teistsugune ja neid kahte ei tohi omavahel võrrelda.",
     ],
+    [
+      "Kui palju raiuti Eestis kokku?",
+      "Kuidas on metsavaru muutunud?",
+      "Kas Eesti mets saab otsa?",
+    ],
   );
 }
 
@@ -150,16 +159,30 @@ export function metsavaruTrendVastus(t: VaruTrend): Vastus {
     ),
   ].join("\n");
 
-  return kokku([sisu, hektar, tabel], [ALLIKAS.SMI_VARU]);
+  return kokku(
+    [sisu, hektar, tabel],
+    [ALLIKAS.SMI_VARU],
+    [],
+    [
+      "Mis on Eesti metsasus?",
+      "Kui palju raiuti Eestis kokku?",
+      "Kas metsavaru on kasvanud viimase aastaga?",
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------
 // 3. Metsasus
 // ---------------------------------------------------------------------------
 
-export function metsasusVastus(m: Metsasus): Vastus {
+export function metsasusVastus(m: Metsasus, maakond?: string): Vastus {
   const kasv = m.metsasusPct - m.vordlusMetsasusPct;
+  const maakonnaMarge = maakond
+    ? `Küsisid metsasust ${maakondInessive(maakond)} kohta, aga Statistikaamet ` +
+      `avaldab selle näitaja üksnes kogu Eesti kohta — allpool on riigi tase.`
+    : null;
   const sisu =
+    `${maakonnaMarge ? (maakonnaMarge + "\n\n") : ""}` +
     `${m.aasta}. aastal oli Eesti metsasus **${pct(m.metsasusPct)}** ehk ligikaudu ` +
     `pool riigi pindalast on metsamaa. Metsamaa kogupindala on ` +
     `${haFromThousands(m.metsamaaPindala)}, millest puistuid ehk ` +
@@ -174,7 +197,11 @@ export function metsasusVastus(m: Metsasus): Vastus {
     `Metsamaa ja puistute pindala erinevus tuleb sellest, et metsamaa hulka ` +
     `loetakse ka raiesmikud, noorendikud ja ajutiselt puudeta alad.`;
 
-  return kokku([sisu, trend, selgitus], [ALLIKAS.SMI_VARU]);
+  return kokku([sisu, trend, selgitus], [ALLIKAS.SMI_VARU], [], [
+    "Kuidas on metsavaru muutunud?",
+    "Kui palju raiuti Eestis kokku?",
+    "Kui suur on puistehektari tagavara?",
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +238,11 @@ export function raieLiigitiVastus(r: RaieLiigiti): Vastus {
     `uuendusraie sisaldab lageraiet, hooldusraie sisaldab harvendusraiet. ` +
     `Ridade kokkuliitmine annaks topeltarvestuse.`;
 
-  return kokku([sisu, tabel, jareldus, nb], [ALLIKAS.SMI_RAIE]);
+  return kokku([sisu, tabel, jareldus, nb], [ALLIKAS.SMI_RAIE], [], [
+    "Mis on turberaie?",
+    "Kui palju raiuti Eestis kokku?",
+    "Kui palju oli lageraie pindala?",
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -239,12 +270,21 @@ export function raieKogusVastus(r: RaieMaakonnas): Vastus {
         `${m3(r.erametsa)} (${pct((r.erametsa / r.raiemaht) * 100)}).`
       : null;
 
-  return kokku([aastaMarkus(r), sisu, omand], [ALLIKAS.DOKUMENDID], [
-    "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
-      "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
-      "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
-      "11,7 miljonit m³ ja raiedokumendid 12,5 miljonit m³.",
-  ]);
+  return kokku(
+    [aastaMarkus(r), sisu, omand],
+    [ALLIKAS.DOKUMENDID],
+    [
+      "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
+        "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
+        "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
+        "11,7 miljonit m³ ja raiedokumendid 12,5 miljonit m³.",
+    ],
+    [
+      "Kui palju raiuti Võrumaal?",
+      "Kuidas jaotub raie liikide kaupa?",
+      "Kui palju oli lageraie?",
+    ],
+  );
 }
 
 export function raieMaakonnasVastus(r: RaieMaakonnas): Vastus {
@@ -262,12 +302,21 @@ export function raieMaakonnasVastus(r: RaieMaakonnas): Vastus {
         `${m3(r.erametsa)} (${pct((r.erametsa / r.raiemaht) * 100)}).`
       : null;
 
-  return kokku([aastaMarkus(r), sisu, omand], [ALLIKAS.DOKUMENDID], [
-    "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
-      "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
-      "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
-      "11,7 miljonit m³ ja raiedokumendid 12,5 miljonit m³.",
-  ]);
+  return kokku(
+    [aastaMarkus(r), sisu, omand],
+    [ALLIKAS.DOKUMENDID],
+    [
+      "Need arvud pärinevad raiedokumentidest (Statistikaamet MM04) ja EI OLE " +
+        "võrreldavad statistilise metsainventeerimise (SMI) arvudega, mida " +
+        "kasutatakse juurdekasvu võrdlemisel. 2023. aastal andis SMI koguraieks " +
+        "11,7 miljonit m³ ja raiedokumendid 12,5 miljonit m³.",
+    ],
+    [
+      "Kui palju raiuti kogu Eestis?",
+      `Kui palju metsa uuendati ${maakondInessive(r.maakond)}?`,
+      `Kui palju metsa hukkus ${maakondInessive(r.maakond)}?`,
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -307,6 +356,11 @@ export function uuendamineVastus(u: Uuendamine): Vastus {
     [sisu, read, kulv, kontekst],
     [ALLIKAS.UUENDAMINE, ALLIKAS.DOKUMENDID],
     [u.hoiatus],
+    [
+      "Kui palju raiuti samal aastal?",
+      "Kui palju metsa istutati lageraiu alale?",
+      "Kui palju raiuti lageraiet?",
+    ],
   );
 }
 
@@ -346,6 +400,11 @@ export function kahjustusedVastus(k: Kahjustused): Vastus {
       "Hukkunud ja kahjustatud puistute pindalad on eri tabelitest ja neid ei " +
         "tohi kokku liita — kahjustatud ala võib hiljem hukkuda.",
     ],
+    [
+      "Kui palju raiuti samal aastal?",
+      "Kui palju metsa istutati samal aastal?",
+      "Mis kahjurid on Eesti metsades?",
+    ],
   );
 }
 
@@ -369,6 +428,7 @@ export function teatisedVastus(
       ],
       [k.allikas],
       [k.hoiatus],
+      ["Mis metsa seal kasvab?", "Kas see ala on kaitse all?"],
     );
   }
 
@@ -409,7 +469,16 @@ export function teatisedVastus(
         .join("\n")
     : null;
 
-  return kokku([sisu, liigid, tabel], [k.allikas], [k.hoiatus]);
+  return kokku(
+    [sisu, liigid, tabel],
+    [k.allikas],
+    [k.hoiatus],
+    [
+      "Mis metsa seal kasvab?",
+      "Kas see ala on kaitse all?",
+      "Kui palju raiuti kogu Eestis?",
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -432,6 +501,7 @@ export function eraldiseInfoVastus(
       ],
       [k.allikas],
       [k.hoiatus],
+      ["Kas seal on raieluba?", "Kas see ala on kaitse all?"],
     );
   }
 
@@ -486,7 +556,16 @@ export function eraldiseInfoVastus(
     .filter(Boolean)
     .join("\n");
 
-  return kokku([sisu, liigid, vanus, kypsus, tabel], [k.allikas], [k.hoiatus]);
+  return kokku(
+    [sisu, liigid, vanus, kypsus, tabel],
+    [k.allikas],
+    [k.hoiatus],
+    [
+      "Kas seal on raieluba?",
+      "Kas see ala on kaitse all?",
+      "Kui palju raiuti kogu Eestis?",
+    ],
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -514,8 +593,11 @@ export function kaitsealadVastus(
       `see sõltub vööndist. Loodusreservaadis on majandustegevus keelatud, ` +
       `sihtkaitsevööndis rangelt piiratud, piiranguvööndis leebemalt. ` +
       `Täpsed tingimused saad Keskkonnaametist või metsaportaalist.`;
-    return kokku([sisu, read, selgitus], [k.allikas], [k.hoiatus]);
-  }
+return kokku([sisu, read, selgitus], [k.allikas], [k.hoiatus], [
+    "Mis metsa seal kasvab?",
+    "Kas seal on raieluba?",
+  ]);
+}
 
   const sisu = `${asukohaKirjeldus} ei jää minu päringu järgi ühelegi kaitstavale loodusobjektile.`;
 
@@ -532,7 +614,10 @@ export function kaitsealadVastus(
     `kaitsealuste liikide elupaigad ja püsielupaigad, mille täpsed piirid ` +
     `ei ole avalikud. Neid näed metsaportaalis oma kinnistu omanikuna sisse logides.`;
 
-  return kokku([sisu, lahedal, kaviat], [k.allikas], [k.hoiatus]);
+  return kokku([sisu, lahedal, kaviat], [k.allikas], [k.hoiatus], [
+    "Mis metsa seal kasvab?",
+    "Kas seal on raieluba?",
+  ]);
 }
 
 /// ---------------------------------------------------------------------------
@@ -622,9 +707,15 @@ export function ilmVastus(d: IlmVastuseAndmed): Vastus {
     return kokku(
       ["Ilmaprognoosi hetkel kätte ei saanud, proovi natukese aja pärast."],
       [],
+      [],
+      ["Mis ilm on homme?", "Mis temperatuur on Tartus?"],
     );
   }
-  return kokku(loigud, ["Keskkonnaagentuuri ilmateenistus (ilmateenistus.ee)"]);
+  return kokku(loigud, ["Keskkonnaagentuuri ilmateenistus (ilmateenistus.ee)"], [], [
+    "Mis ilm on homme?",
+    "Kas täna sajab?",
+    "Mis temperatuur on Tartus?",
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -641,6 +732,12 @@ export function reeglidVastus(loigud: Loik[]): Vastus {
           `- **riigiteataja.ee** — metsaseadus ja metsa majandamise eeskiri`,
       ],
       [],
+      [],
+      [
+        "Kas kevadel tohib metsa raiuda?",
+        "Mis vanuses tohib kuuske raiuda?",
+        "Mis on turberaie?",
+      ],
     );
   }
 
@@ -651,6 +748,11 @@ export function reeglidVastus(loigud: Loik[]): Vastus {
     [
       "See on üldine selgitus, mitte juriidiline nõu. Konkreetse kinnistu " +
         "kohta käivad reeglid kinnita Keskkonnaametist.",
+    ],
+    [
+      "Kas kevadel tohib metsa raiuda?",
+      "Mis vanuses tohib männikut lageraiuda?",
+      "Kui kaua kehtib metsateatis?",
     ],
   );
 }
@@ -678,5 +780,11 @@ export function tundmatuVastus(kysimus: string): Vastus {
         : null,
     ],
     [],
+    [],
+    [
+      "Kui palju raiuti Eestis?",
+      "Mis metsa kasvab katastriüksusel 46801:003:0053?",
+      "Mis vanuses tohib männikut lageraiuda?",
+    ],
   );
 }

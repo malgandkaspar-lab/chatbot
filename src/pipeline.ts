@@ -152,6 +152,7 @@ async function lahendaAsukoht(
         `nt "Pupli küla, Rõuge vald".`,
       allikad: [],
       hoiatused: [],
+      jatkukysimused: [],
     };
   }
   return { asukoht, fraas: asukohaFraas(asukoht) };
@@ -191,7 +192,7 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
     }
 
     case "metsasus":
-      return ilmaAsukohta(T.metsasusVastus(await metsasus()));
+      return ilmaAsukohta(T.metsasusVastus(await metsasus(), paring.maakond));
 
     case "raie_liigiti": {
       const r = await raieLiigiti();
@@ -267,6 +268,7 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
               `Lisa palun katastritunnus kujul 12345:001:0001.`,
             allikad: [],
             hoiatused: [],
+            jatkukysimused: [],
           },
           // Asukoht ise lahenes, seega jätame selle mällu
           lahendatudAsukoht: malu,

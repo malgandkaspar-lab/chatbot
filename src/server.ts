@@ -103,6 +103,7 @@ app.post("/api/chat", async (req, res) => {
       ruuteriPohjus: v.ruuteriPohjus,
       allikad: v.allikad,
       hoiatused: v.hoiatused,
+      jatkukysimused: v.jatkukysimused,
       ...(v.graafik ? { graafik: v.graafik } : {}),
       malu: kontekst
         ? {

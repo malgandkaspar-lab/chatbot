@@ -326,6 +326,24 @@ async function kysi(kysimus) {
             w.textContent = h;
             sisu.append(w);
           }
+          if (d.jatkukysimused?.length) {
+            const k = document.createElement("div");
+            k.className = "jatkuk";
+            for (const q of d.jatkukysimused) {
+              const n = Object.assign(document.createElement("button"), {
+                type: "button",
+                className: "chip",
+                textContent: q,
+              });
+              n.addEventListener("click", () => {
+                k.remove();
+                sisend.value = q;
+                vorm.requestSubmit();
+              });
+              k.append(n);
+            }
+            sisu.append(k);
+          }
           const m = document.createElement("div");
           m.className = "meta";
           const maluOsa = d.malu?.asukoht ? ` · mälus: ${d.malu.asukoht}` : "";
