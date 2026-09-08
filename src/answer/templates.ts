@@ -630,6 +630,11 @@ type IlmVastuseAndmed = {
   homne?: boolean;
   ainultSademed?: boolean;
   asukoht?: string | null;
+  /**
+   * Võti `prognoos.linnad` jaoks — linnaprognoos, mida küsitud linna jaoks
+   * kasutada (küsitud linn ise või lähim prognoosilinna).
+   */
+  prognoosiLinn?: string | null;
 };
 
 /** Kuupäeva järgi üks prognoosipäev (vaikimisi esimene ehk tänane). */
@@ -645,11 +650,15 @@ function prognoosiPäev(prognoos: IlmPrognoos, homne: boolean) {
 }
 
 function ilmLoigud(d: IlmVastuseAndmed): string[] {
-  const { prognoos, vaatlus, homne, ainultSademed, asukoht } = d;
+  const { prognoos, vaatlus, homne, ainultSademed, asukoht, prognoosiLinn } = d;
   const osad: string[] = [];
   const päev = prognoosiPäev(prognoos, homne ?? false);
   const ajaSilt = homne ? "Homme" : "Täna";
-  const linnaPrognoos = asukoht ? prognoos.linnad[asukoht] : undefined;
+  const linnaPrognoos =
+    asukoht && prognoosiLinn ? prognoos.linnad[prognoosiLinn] : undefined;
+  // Kui on olemas kohalik linnaprognoos, vastame AINULT selle põhjal ja ei
+  // pane ette üleriigilist teksti - kasutaja küsis kindla koha ilma.
+  const kohalik = Boolean(linnaPrognoos);
 
   // 1) Sademed
   if (ainultSademed) {
@@ -658,7 +667,7 @@ function ilmLoigud(d: IlmVastuseAndmed): string[] {
       : päev.päev
         ? onSademed(päev.päev.nahtus)
         : prognoos.onSademed;
-    const kohas = asukoht ? `${asukoht} piirkonnas` : "Eestis";
+    const kohas = kohalik ? `${asukoht} piirkonnas` : "Eestis";
     osad.push(
       sademed
         ? `${ajaSilt} on ${kohas} prognoosi järgi sademeid — hoovihma või vihma.`
@@ -666,8 +675,8 @@ function ilmLoigud(d: IlmVastuseAndmed): string[] {
     );
   }
 
-  // 2) Üldprognoos päev
-  if (päev.päev) {
+  // 2) Üleriigiline päevaprognoos — ainult siis, kui kindlale kohale vastatud
+  if (!kohalik && päev.päev) {
     const P = päev.päev;
     let kirjeldus = `**${ajaSilt}** (${date(päev.kuupaev)}):`;
     if (P.tempmin !== null && P.tempmax !== null) {
@@ -680,12 +689,13 @@ function ilmLoigud(d: IlmVastuseAndmed): string[] {
     if (P.tekst && !P.tekst.startsWith(P.nimi)) osad.push(P.tekst);
   }
 
-  // 3) Kotaandmed
-  if (asukoht && linnaPrognoos) {
-    osad.push(
-      `${asukoht} piirkonnas: ${linnaPrognoos.nimi}, ` +
-        `minimaalne temperatuur ${linnaPrognoos.tempmin} °C.`,
-    );
+  // 3) Kohalik linnaprognoos
+  if (kohalik && linnaPrognoos) {
+    const P = linnaPrognoos;
+    let kirjeldus = `**${ajaSilt}** (${date(päev.kuupaev)}) ${asukoht} piirkonnas:`;
+    if (P.tempmin !== null) kirjeldus += ` minimaalne temperatuur ${num(P.tempmin)} °C`;
+    if (P.nimi) kirjeldus += `, ${P.nimi}`;
+    osad.push(kirjeldus);
   }
 
   // 4) Praegune vaatlus

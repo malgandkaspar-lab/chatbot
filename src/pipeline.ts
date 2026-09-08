@@ -296,7 +296,9 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
     }
 
     case "ilm": {
-      const { prognoos, vaatlus } = await ilmAsukohaJaoks(paring.asukoht);
+      const { prognoos, vaatlus, prognoosiLinn } = await ilmAsukohaJaoks(
+        paring.asukoht,
+      );
       return ilmaAsukohta(
         T.ilmVastus({
           prognoos,
@@ -304,6 +306,7 @@ async function taidaIntent(paring: Paring, kysimus: string): Promise<Tulem> {
           homne: paring.homne,
           ainultSademed: paring.ainultSademed,
           asukoht: paring.asukoht,
+          prognoosiLinn,
         }),
       );
     }

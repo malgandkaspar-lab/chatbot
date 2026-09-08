@@ -62,6 +62,7 @@ const PHENOMENONI_SONASTIK: Record<string, string> = {
   "Cloudy with clear spells": "pilves selgimistega",
   "Partly cloudy": "osaliselt pilves",
   "Fair": "vahelduv pilvisus",
+  "Few clouds": "vähene pilvisus",
   Fog: "udu",
   Mist: "uduvine",
   "Light rain": "kerge vihm",
@@ -206,16 +207,58 @@ export async function ilmaVaatlused(): Promise<IlmVaatlus[]> {
 }
 
 /**
+ * Linnad, mille kohta forecast.php otsest linnaprognoosi ei anna (tabelis on
+ * ainult 6 linna), ja lähim nende seas.
+ */
+const LINNA_FORECASTI_VÕTI: Record<string, string> = {
+  Tallinn: "Harku",
+  Narva: "Jõhvi",
+  "Kohtla-Järve": "Jõhvi",
+  Kunda: "Jõhvi",
+  Haapsalu: "Pärnu",
+  Viljandi: "Türi",
+  Rakvere: "Türi",
+  Võru: "Tartu",
+  Põlva: "Tartu",
+  Valga: "Tartu",
+  Rapla: "Harku",
+  Paide: "Türi",
+  Paldiski: "Harku",
+  Pakri: "Harku",
+  Tõravere: "Tartu",
+};
+
+/**
  * Otsib kasutaja nimetatud linna/jaama kohta ilmaandmed.
- * Tagastab prognoosi ja võimaliku jaamavaatluse (nime sobivuse järgi).
+ * Tagastab prognoosi, lähima linnaprognoosi võtme ja võimaliku jaamavaatluse.
  */
 export async function ilmAsukohaJaoks(
   asukoht?: string | null,
-): Promise<{ prognoos: IlmPrognoos; vaatlus: IlmVaatlus | null }> {
+): Promise<{
+  prognoos: IlmPrognoos;
+  /**
+   * Linna, mille linnaprognoosi kasti kasutada (`prognoos.linnad[võti]`).
+   * Null, kui küsitud kohale linnaprognoosi pole.
+   */
+  prognoosiLinn: string | null;
+  vaatlus: IlmVaatlus | null;
+}> {
   const [prognoos, vaatlused] = await Promise.all([
     ilmaPrognoos(),
     ilmaVaatlused(),
   ]);
+
+  let prognoosiLinn: string | null = null;
+  if (asukoht && asukoht.trim()) {
+    // Otsene linnaprognoos (Tartu, Pärnu, Kuressaare, Türi, Harku, Jõhvi)
+    if (prognoos.linnad[asukoht]) {
+      prognoosiLinn = asukoht;
+    } else {
+      // Muud linnad: lähimaks loetav prognoosilinna võti
+      const võti = LINNA_FORECASTI_VÕTI[asukoht];
+      if (võti && prognoos.linnad[võti]) prognoosiLinn = võti;
+    }
+  }
 
   let vaatlus: IlmVaatlus | null = null;
   if (asukoht && asukoht.trim()) {
@@ -228,7 +271,7 @@ export async function ilmAsukohaJaoks(
         ) ?? null;
     }
   }
-  return { prognoos, vaatlus };
+  return { prognoos, prognoosiLinn, vaatlus };
 }
 
 export { onSademed };

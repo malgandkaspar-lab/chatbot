@@ -399,6 +399,11 @@ test("ilm", async () => {
 
   const tartu = await ilmAsukohaJaoks("Tartu");
   const tallinn = await ilmAsukohaJaoks("Tallinn");
+  console.log(
+    `  linnaprognoosi võti: Tartu -> ${tartu.prognoosiLinn ?? "-"}, Tallinn -> ${tallinn.prognoosiLinn ?? "-"}`,
+  );
+  if (!tartu.prognoosiLinn || !tallinn.prognoosiLinn)
+    throw new Error("linna linnaprognoosi võtit ei leitud");
   const leitud = ["Tartu", "Tallinn"].filter(
     (k) => tartu.vaatlus?.jaam.includes(k) || tallinn.vaatlus?.jaam.includes(k),
   );
