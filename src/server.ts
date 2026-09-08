@@ -5,8 +5,7 @@ import express from "express";
 import { resolve } from "node:path";
 import { vasta } from "./pipeline.js";
 import { llmRuuter } from "./llm/router.js";
-import { tervisekontroll, chatStream } from "./llm/ollama.js";
-import { VASTAJA_PROMPT } from "./llm/prompts.js";
+import { tervisekontroll } from "./llm/ollama.js";
 import { KIRJELDUSED } from "./router/intents.js";
 import {
   leiaSeanss,
@@ -83,7 +82,6 @@ app.post("/api/chat", async (req, res) => {
     // kutsub seda ainult juhul, kui regex vastet ei leidis.
     const ruuter = llmLubatud()
       ? async (k: string) => {
-          llmKasutatud = true;
           saada("staatus", {
             sonum: "Küsimus ei sobitunud tuntud mustriga, mõtlen",
           });
@@ -98,7 +96,6 @@ app.post("/api/chat", async (req, res) => {
       saada("kontekst", { sonum: v.kontekstiSelgitus });
     }
 
-   
     saada("vastus", { tekst: v.tekst });
     saada("lopp", {
       intent: v.intent,
