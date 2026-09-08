@@ -201,8 +201,32 @@ function leiaIlmaAsukoht(t: string): string | null {
 }
 
 const REEGLID: Reegel[] = [
+  // --- JÄTKUKÜSIMUS: lühike ilmake ("Tallinnas?", "Pärnus homme?")
+  //     Peab olema ESIMENE, sest mõned linnad (Tartu, Pärnu) on ka maakonnad
+  //     ja muidu haaraks jatku_maakond selle endale.
+  {
+    nimi: "jatku_ilm",
+    kui: [/./u],
+    ehita: (kysimus, t, k) => {
+      if (k?.viimaneIntent !== "ilm") return null;
+      const sonu = t.split(/\s+/).filter(Boolean).length;
+      if (sonu > 2) return null;
+      const asukoht = leiaIlmaAsukoht(t);
+      if (!asukoht) return null;
+      const homne = /\b(homme|homme|järgmine\s+päev)\b/u.test(t);
+      return {
+        paring: {
+          intent: "ilm",
+          asukoht,
+          ...(homne ? { homne: true } : {}),
+        },
+        kontekstiSelgitus: `Jätkan eelmist ilmaküsimust, nüüd ${asukoht}`,
+      };
+    },
+  },
+
   // --- JÄTKUKÜSIMUS: sama küsimus, uus maakond ("aga Võrumaal?")
-  //     Peab olema esimene, sest muidu haaraks mõni sisureegel selle endale.
+  //     Peab olema teine, sest muidu haaraks mõni sisureegel selle endale.
   {
     nimi: "jatku_maakond",
     kui: [/./u],

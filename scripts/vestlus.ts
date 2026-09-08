@@ -9,6 +9,7 @@ import { loadEnv } from "../src/lib/env.js";
 loadEnv();
 
 import { marsruudi } from "../src/router/regex.js";
+import { uusKontekst } from "../src/router/kontekst.js";
 import { vasta } from "../src/pipeline.js";
 
 const taisVastus = process.argv.includes("--tais");
@@ -129,7 +130,30 @@ for (const [kysimus, oodatud] of KOMPLEKT) {
   );
 }
 
-console.log(`\n${ok}/${KOMPLEKT.length} õigesti marsruuditud`);
+// ---------------------------------------------------------------------------
+// Kontekstipõhised jätkuküsimused (vajavad eelnevat intenti)
+// ---------------------------------------------------------------------------
+const KONTEKSTI_KOMPLEKT: { taust: string; kysimus: string; oodatud: string }[] = [
+  { taust: "ilm", kysimus: "Tallinnas?", oodatud: "ilm" },
+  { taust: "ilm", kysimus: "Tartus?", oodatud: "ilm" },
+  { taust: "ilm", kysimus: "Pärnus homme?", oodatud: "ilm" },
+  { taust: "raie_maakonnas", kysimus: "Tallinnas?", oodatud: "tundmatu" },
+];
+
+for (const { taust, kysimus, oodatud } of KONTEKSTI_KOMPLEKT) {
+  const k = uusKontekst();
+  k.viimaneIntent = taust as any;
+  const r = marsruudi(kysimus, k);
+  const saadud = r.paring.intent;
+  const klapib = saadud === oodatud;
+  if (klapib) ok++;
+  else valed.push(`  [kontekst ${taust}] "${kysimus}"\n      oodatud=${oodatud}  saadud=${saadud} (${r.pohjus})`);
+  console.log(
+    `${klapib ? "OK  " : "VALE"} ${saadud.padEnd(20)} [kontekst ${taust}] "${kysimus}"`,
+  );
+}
+
+console.log(`\n${ok}/${KOMPLEKT.length + KONTEKSTI_KOMPLEKT.length} õigesti marsruuditud`);
 if (valed.length > 0) {
   console.log("\nValesti:");
   console.log(valed.join("\n"));
